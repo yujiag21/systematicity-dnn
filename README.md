@@ -1,2 +1,3 @@
-# systematicity-dnn
+# Systematic inference with DNNs
 
+## 
