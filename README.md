@@ -1,6 +1,6 @@
 # Systematic inference with DNNs
 
-## Creating formal datasets
+## Creating formal language datasets
 
 Run:
 
