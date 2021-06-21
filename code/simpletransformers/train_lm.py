@@ -1,20 +1,15 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Wed Jun 16 20:42:44 2021
-
-@author: grondat1
-"""
-
-# Training language model (LM) for sequence (or sequence pair) classification tasks
+# Training language model (LM)
 # Takes txt-files with src-tgt pairs as arguments, pools together and trains LM
 # Argument files created with create_datasets.py
 
 import os
+import shutil
 import logging
 import argparse
 import numpy as np
 from simpletransformers.language_modeling import (LanguageModelingModel, LanguageModelingArgs)
+
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 def main(args):
     
@@ -37,13 +32,18 @@ def main(args):
     # get vocabulary from training data (discard whitespace)
     lm_train_voc = sorted(set(''.join(lm_train_data)) - {' '})
     
-    if not os.path.exists(args.save_data_folder):
-        os.makedirs(args.save_data_folder)
+    if not os.path.exists(args.save_data_dir):
+        os.makedirs(args.save_data_dir)
     
-    # filepath to save training data: named by vocabulary[:5]
+    # filepath to save training data: named by vocabulary[:5] + added int for differentiating between variants
     cont_str = '...' if len(lm_train_voc) > 5 else ''
-    train_file = ''.join(lm_train_voc[:5]) + cont_str
-    train_file = os.path.join(args.save_data_folder, train_file)
+    data_int = 1
+    train_fname = ''.join(lm_train_voc[:5]) + cont_str
+    while os.path.exists('{0}_{1}.txt'.format(train_fname, data_int)):
+        data_int += 1
+    train_file = '{0}_{1}.txt'.format(train_fname, data_int)
+    # train_file = ''.join(lm_train_voc[:5]) + cont_str + '.txt'
+    train_file = os.path.join(args.save_data_dir, train_file)
     
     # add int to save_folder name for differentiating between variants
     folder_int = 1
@@ -62,13 +62,33 @@ def main(args):
     transformers_logger.setLevel(logging.WARNING)
     
     model_args = LanguageModelingArgs()
-    model_args.reprocess_input_data = True
     model_args.overwrite_output_dir = True
-    model_args.num_train_epochs = args.epochs
+    model_args.reprocess_input_data = True
+    model_args.evaluate_during_training = True
+    model_args.early_stopping_consider_epochs = True
     model_args.dataset_type = "simple"
+    model_args.early_stopping_patience = 1
+    
+    model_args.num_train_epochs = args.epochs
+    model_args.learning_rate = args.learning_rate
     model_args.vocab_size = args.vocab_size
+    model_args.train_batch_size = args.batch_size
+    model_args.eval_batch_size = args.batch_size
+    model_args.use_early_stopping = args.use_early_stopping
+    
+    # add int to output folder for differentiating between variants
+    output_int = 1
+    while args.output_dir[-1] == '/':
+        args.output_dir = args.output_dir[:-1]
+    while os.path.exists('{0}_{1}'.format(args.output_dir, output_int)):
+        output_int += 1
+    
+    model_args.output_dir = '{0}_{1}'.format(args.output_dir, output_int)
+    model_args.best_model_dir = os.path.join(model_args.output_dir, 'best_model')
     
     model = LanguageModelingModel(args.model, None, args=model_args, train_files=train_file, use_cuda=args.use_cuda)
+    
+    # train model
     model.train_model(train_file, eval_file=train_file)
     result = model.eval_model(train_file)
 
@@ -77,10 +97,14 @@ if __name__ == '__main__':
     arg_parser.add_argument('-d', '--data', nargs='*') # paths to txt-files with data
     arg_parser.add_argument('--delimiter', default='\t') # separates src from tgt in data file
     arg_parser.add_argument('--only_src', action='store_true') # use only src from data file for training
-    arg_parser.add_argument('--save_data_folder', default='lm_training_data/') # separates src from tgt in data file
+    arg_parser.add_argument('--save_data_dir', default='lm/lm_training_data') # folder to save LM training data
     arg_parser.add_argument('-m', '--model', default='bert') # model type
+    arg_parser.add_argument('--learning_rate', type=float, default=1e-06) # learning rate
     arg_parser.add_argument('--epochs', type=int, default=5) # number of training epochs
     arg_parser.add_argument('--vocab_size', type=int, default=30000) # max vocabulary size
+    arg_parser.add_argument('--batch_size', type=int, default=1) # batch size
+    arg_parser.add_argument('--output_dir', default='lm/lm') # folder to save LM
+    arg_parser.add_argument('--use_early_stopping', type=bool, default=True) # stop training when eval loss doesn't increase
     arg_parser.add_argument('--random_seed', type=int, default=12345) # fix random seed
     arg_parser.add_argument('--use_cuda', action='store_true') # gpu/cpu
     args = arg_parser.parse_args()
@@ -88,4 +112,8 @@ if __name__ == '__main__':
     if args.random_seed:
         np.random.seed(args.random_seed)
     
+    # Create dataset from data files and train+save LM
     main(args)
+    shutil.rmtree('runs')
+    
+    shutil.rmtree('cache_dir')

@@ -1,11 +1,3 @@
-#!/usr/bin/env python3
-# -*- coding: utf-8 -*-
-"""
-Created on Mon Jun 14 13:34:04 2021
-
-@author: grondat1
-"""
-
 import os
 import json
 import argparse
