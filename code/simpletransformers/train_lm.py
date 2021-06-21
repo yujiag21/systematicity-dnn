@@ -19,7 +19,6 @@ from simpletransformers.language_modeling import (LanguageModelingModel, Languag
 def main(args):
     
     # Make training data file from original source files containing src-tgt pairs
-    
     lm_train_data = []
     
     for fpath in args.data:
