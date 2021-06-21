@@ -9,6 +9,7 @@ import argparse
 import numpy as np
 from simpletransformers.language_modeling import (LanguageModelingModel, LanguageModelingArgs)
 
+# prevents unnecessary warning message
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 def main(args):
@@ -76,14 +77,14 @@ def main(args):
     model_args.eval_batch_size = args.batch_size
     model_args.use_early_stopping = args.use_early_stopping
     
-    # add int to output folder for differentiating between variants
+    # output folder name: model + vocabulary + int differentiating between variants
+    output_name = '{0}_{1}'.format(args.model, train_fname)
+    output_folder = os.path.join(args.output_dir, output_name)
     output_int = 1
-    while args.output_dir[-1] == '/':
-        args.output_dir = args.output_dir[:-1]
-    while os.path.exists('{0}_{1}'.format(args.output_dir, output_int)):
+    while os.path.exists('{0}_{1}'.format(output_folder, output_int)):
         output_int += 1
     
-    model_args.output_dir = '{0}_{1}'.format(args.output_dir, output_int)
+    model_args.output_dir = '{0}_{1}'.format(output_folder, output_int)
     model_args.best_model_dir = os.path.join(model_args.output_dir, 'best_model')
     
     model = LanguageModelingModel(args.model, None, args=model_args, train_files=train_file, use_cuda=args.use_cuda)
@@ -99,12 +100,12 @@ if __name__ == '__main__':
     arg_parser.add_argument('--only_src', action='store_true') # use only src from data file for training
     arg_parser.add_argument('--save_data_dir', default='lm/lm_training_data') # folder to save LM training data
     arg_parser.add_argument('-m', '--model', default='bert') # model type
-    arg_parser.add_argument('--learning_rate', type=float, default=1e-06) # learning rate
+    arg_parser.add_argument('--learning_rate', type=float, default=4e-05) # learning rate
     arg_parser.add_argument('--epochs', type=int, default=5) # number of training epochs
     arg_parser.add_argument('--vocab_size', type=int, default=30000) # max vocabulary size
     arg_parser.add_argument('--batch_size', type=int, default=1) # batch size
-    arg_parser.add_argument('--output_dir', default='lm/lm') # folder to save LM
-    arg_parser.add_argument('--use_early_stopping', type=bool, default=True) # stop training when eval loss doesn't increase
+    arg_parser.add_argument('--output_dir', default='lm') # folder to save LM
+    arg_parser.add_argument('--use_early_stopping', type=bool, default=True) # stop training when eval loss doesn't decrease
     arg_parser.add_argument('--random_seed', type=int, default=12345) # fix random seed
     arg_parser.add_argument('--use_cuda', action='store_true') # gpu/cpu
     args = arg_parser.parse_args()
@@ -112,8 +113,11 @@ if __name__ == '__main__':
     if args.random_seed:
         np.random.seed(args.random_seed)
     
-    # Create dataset from data files and train+save LM
+    # create dataset from data files and train+save LM
     main(args)
-    shutil.rmtree('runs')
     
-    shutil.rmtree('cache_dir')
+    # remove extra files created for training
+    if os.path.exists('runs'):
+        shutil.rmtree('runs')
+    if os.path.exists('cache_dir'):
+        shutil.rmtree('cache_dir')
