@@ -11,6 +11,8 @@ GOOD_func_names = ["goodG2B", "goodB2G"]
 
 ALL_FUNC_NAME_FORMAT = BAD_func_names + GOOD_func_names
 
+
+# Use tool ctag to get all functions in a .c file and get the line number in which these functions are
 def get_line_numbers(filename):
     cmd = CTAG_CMD.format(filename)
     output = subprocess.getoutput(cmd)
@@ -33,7 +35,8 @@ def get_line_numbers(filename):
                 break
     return line_numbers, function_names
 
-
+# Process the C file and grab the function source code and extract the function at line_num
+# I copied + modified this code from stack overflow...
 def process_file(filename, line_num):
     code = ""
     cnt_braket = 0
@@ -56,7 +59,7 @@ def process_file(filename, line_num):
                     found_end = True
                     return code
 
-
+# write function into its own file for easy use
 def write_output_to_file(filename, data, func):
     output_path = "../../code/data_processor/C_output/"
     found = False
@@ -97,7 +100,8 @@ def main(args):
 
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument('--data-dir', default='data/', help="The data directory where the CWE files are stored.")
+    arg_parser.add_argument('--data-dir', default='data/',
+                            help="The data directory where the CWE files are stored. Use absolute path.")
     args = arg_parser.parse_args()
     main(args)
 
