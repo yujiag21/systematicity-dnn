@@ -5,6 +5,9 @@
 Install the simpletransformers library (anaconda/miniconda recommended):\
 https://simpletransformers.ai/
 
+All code is in the folder *code*\
+The files train_lm.py and train_clf.py are in the folder *code/simpletransformers*.
+
 ## Creating formal language datasets
 
 Run:
@@ -39,7 +42,7 @@ Saving options can be modified via the arguments **--save_folder**, **--params_f
 Create dataset (see above). Then run:
 
 ```bash
-python train_lm -d *paths_to_datasets* -m *model_type* (--pairs)
+python train_lm.py -d *paths_to_datasets* -m *model_type* (--pairs)
 ```
 
 Multiple datasets can be given as argument to **-d**.\
@@ -63,8 +66,10 @@ Using cpu by default; switch to gpu with **--use_cuda**.
 Create dataset and train a LM on it (see above). Then run:
 
 ```bash
-python train_clf -d *paths_to_datasets* -m *model_type* (--pairs)
+python train_clf.py -d *paths_to_datasets* -m *model_type* (--pairs)
 ```
+
+Adding **--pairs** classifier sentence pairs rather than single sentences. Here, the label is based on the data file (the first **-d** argument gets the label 0, the second gets 1, etc.). Without **--pairs** the label is taken from tgt.
 
 Using cpu by default; switch to gpu with **--use_cuda**.
 
@@ -79,8 +84,8 @@ The example below does the following (default settings for dataset names based o
 python create_datasets.py -task copy -voc ab
 python create_datasets.py -task different -voc cd
 
-python train_lm -d data/copy_ab_1/src_tgt.txt data/different_cd_1/src_tgt.txt -m bert --pairs
+python simpletransformers/train_lm.py -d data/copy_ab_1/src_tgt.txt data/different_cd_1/src_tgt.txt -m bert --pairs
 
-python train_clf -d data/copy_ab_1/src_tgt.txt data/different_cd_1/src_tgt.txt -m bert --pairs
+python simpletransformers/train_clf.py -d data/copy_ab_1/src_tgt.txt data/different_cd_1/src_tgt.txt -m bert -lm lm/bert_abcd_1 --pairs
 ```
 
