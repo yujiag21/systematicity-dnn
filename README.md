@@ -30,7 +30,7 @@ python create_datasets.py -task different -voc cd
 python create_datasets.py -task custom -voc abc --custom_label X
 ```
 
-By default, dataset is saved to a folder in "data/", with the name "*task*_*vocabulary[:5]*_*int*.txt"\
+By default, dataset is saved to a folder in "data/", with the name *task_vocabulary[:5]_int.txt*\
 The int is to differentiate datasets with the same parameters to avoid overwriting.\
 Saving options can be modified via the arguments **--save_folder**, **--params_fname**, and **data_fname**.
 
@@ -56,10 +56,10 @@ The training data is constructed from all arguments of **-d**.
 Adding **--pairs** takes both src and tgt from the original data file into consideration when forming the LM training data.\
 Not adding it only uses the src for training the LM.
 
-By default, the LM training data is saved in the folder "lm/lm_training_data", and named as "vocabulary[:5]_*int*.txt"\
+By default, the LM training data is saved in the folder *lm/lm_training_data*, and named as *vocabulary[:5]_int.txt*\
 Training data saving location be modified via the argument **--save_data_dir**.
 
-By default, the LM is saved in the folder "lm", and named as "*model_type*_*vocabulary[:5]*_*int*.\
+By default, the LM is saved in the folder "lm", and named as *model_type_vocabulary[:5]_int.txt*\
 LM saving location can be modified via the argument **--output_dir**.
 
 ## Training a classifier (clf)
