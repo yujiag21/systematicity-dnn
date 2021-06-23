@@ -76,10 +76,12 @@ def train_clf(args):
     model_args.output_dir = '{0}_{1}'.format(output_folder, output_int)
     model_args.best_model_dir = os.path.join(model_args.output_dir, 'best_model')
     
-    # create and train the clf
-    model = ClassificationModel("bert", "lm/bert_ab_1/best_model", args=model_args, use_cuda=args.use_cuda)
-    model.train_model(train_df=train_df, eval_df=train_df)
+    # path to trained LM
+    lm_folder = os.path.join(args.language_model, args.lm_best_model_folder)
     
+    # create and train the clf
+    model = ClassificationModel(args.model, lm_folder, args=model_args, use_cuda=args.use_cuda)
+    model.train_model(train_df=train_df, eval_df=train_df)
 
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser()
@@ -87,6 +89,8 @@ if __name__ == '__main__':
     arg_parser.add_argument('--delimiter', default='\t') # separates src from tgt in data file
     arg_parser.add_argument('--pairs', action='store_true') # classify src-tgt pairs; otherwise tgt is label
     arg_parser.add_argument('-m', '--model', default='bert') # model type (must be same as trained LM)
+    arg_parser.add_argument('-lm', '--language_model') # path to trained LM
+    arg_parser.add_argument('--lm_best_model_folder', default='best_model') # path to trained LM
     arg_parser.add_argument('--learning_rate', type=float, default=4e-05) # learning rate
     arg_parser.add_argument('--epochs', type=int, default=5) # number of training epochs
     arg_parser.add_argument('--vocab_size', type=int, default=30000) # max vocabulary size

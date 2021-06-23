@@ -30,7 +30,7 @@ python create_datasets.py -task different -voc cd
 python create_datasets.py -task custom -voc abc --custom_label X
 ```
 
-By default, dataset is saved to a folder in "data/", with the name *task_vocabulary[:5]_int.txt*\
+By default, dataset is saved to *data/task_vocabulary[:5]_int/src_tgt.txt*\
 The int is to differentiate datasets with the same parameters to avoid overwriting.\
 Saving options can be modified via the arguments **--save_folder**, **--params_fname**, and **data_fname**.
 
@@ -42,15 +42,7 @@ Create dataset (see above). Then run:
 python train_lm -d *paths_to_datasets* -m *model_type* (--pairs)
 ```
 
-Multiple datasets can be given as argument to **-d**. The example below first creates two datasets and then trains a LM based on them (default settings for dataset names based on task & vocabulary):
-
-```bash
-python create_datasets.py -task copy -voc ab
-python create_datasets.py -task different -voc cd
-
-python train_lm -d data/copy_ab_1/src_tgt.txt data/different_cd_1/src_tgt.txt -m bert --pairs
-```
-
+Multiple datasets can be given as argument to **-d**.\
 The training data is constructed from all arguments of **-d**.
 
 Adding **--pairs** takes both src and tgt from the original data file into consideration when forming the LM training data.\
@@ -59,10 +51,33 @@ Not adding it only uses the src for training the LM.
 By default, the LM training data is saved in the folder *lm/lm_training_data*, and named as *vocabulary[:5]_int.txt*\
 Training data saving location be modified via the argument **--save_data_dir**.
 
-By default, the LM is saved in the folder "lm", and named as *model_type_vocabulary[:5]_int.txt*\
+By default, the LM is saved in the folder "lm", and named as *model_vocabulary[:5]_int.txt*\
 LM saving location can be modified via the argument **--output_dir**.
+
+See simpletransformers documentation (above) for list of available LM types (e.g. BERT, RoBERTa, etc.).
+
+Using cpu by default; switch to gpu with **--use_cuda**.
 
 ## Training a classifier (clf)
 
+Create dataset and train a LM on it (see above). Then run:
 
+```bash
+python train_clf -d *paths_to_datasets* -m *model_type* (--pairs)
+```
+
+Using cpu by default; switch to gpu with **--use_cuda**.
+
+## Full pipeline for training clf from scratch
+
+The example below first creates two datasets, then trains a LM based on them (default settings for dataset names based on task & vocabulary):
+
+```bash
+python create_datasets.py -task copy -voc ab
+python create_datasets.py -task different -voc cd
+
+python train_lm -d data/copy_ab_1/src_tgt.txt data/different_cd_1/src_tgt.txt -m bert --pairs
+
+python train_clf -d data/copy_ab_1/src_tgt.txt data/different_cd_1/src_tgt.txt -m bert --pairs
+```
 

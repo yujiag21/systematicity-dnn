@@ -74,7 +74,7 @@ class Dataset():
     
     # set target values
     def set_tgt(self,
-                task='copy', # copy/different/reverse/replace/uppercase/count/custom
+                task='copy', # copy/different/reverse/uppercase/count/custom
                 custom_label='X'): # label in custom task
         
         assert task in ['copy', 'different', 'reverse', 'replace', 'uppercase', 'count', 'custom']
@@ -130,7 +130,7 @@ def main(args):
                  max_size=args.max_size)
     
     # make targets
-    ds.set_tgt(task=args.task)
+    ds.set_tgt(task=args.task, custom_label=args.custom_label)
     
     # make src-tgt pairs
     src_tgt = list(zip(ds.src, ds.tgt))
