@@ -18,9 +18,17 @@ Task is one of the following:\
 **reverse**: map sequences to their reversal\
 **uppercase**: map sequences to capitalized versions\
 **count**: map sequences to their token counts represented by a single number token\
-**custom**: map all sequences to a custom label given as the argument **--custom_label**\
+**custom**: map all sequences to a custom label given as the argument **--custom_label**
 
 Vocabulary given as a plaintext string: e.g. **ab**
+
+Some examples:
+
+```bash
+python create_datasets.py -task copy -voc ab
+python create_datasets.py -task different -voc cd
+```
+
 
 ## Training a language model (LM)
 
