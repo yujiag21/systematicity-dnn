@@ -8,7 +8,7 @@ import numpy as np
 import pandas as pd
 from simpletransformers.classification import (ClassificationModel, ClassificationArgs)
 
-def main(args):
+def train_clf(args):
     
     # Make training data from original source files containing src-tgt pairs
     
@@ -79,22 +79,7 @@ def main(args):
     # create and train the clf
     model = ClassificationModel("bert", "lm/bert_ab_1/best_model", args=model_args, use_cuda=args.use_cuda)
     model.train_model(train_df=train_df, eval_df=train_df)
-
-    # # # Evaluate the model
-    # result, model_outputs, wrong_predictions = model.eval_model(
-    #     eval_df
-    # )
-    # 
-    # # Make predictions with the model
-    # predictions, raw_outputs = model.predict(
-    #     [
-    #         [
-    #             "Legolas was an expert archer",
-    #             "Legolas was taller than Gimli",
-    #         ]
-    #     ]
-    # )
-
+    
 
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser()
@@ -117,7 +102,7 @@ if __name__ == '__main__':
         np.random.seed(args.random_seed)
     
     # create dataset from data files and train+save clf
-    main(args)
+    train_clf(args)
     
     # remove extra files created for training
     if os.path.exists('runs'):

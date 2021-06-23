@@ -12,7 +12,7 @@ from simpletransformers.language_modeling import (LanguageModelingModel, Languag
 # prevents unnecessary warning message
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
-def main(args):
+def train_lm(args):
     
     # Make training data file from original source files containing src-tgt pairs
     
@@ -114,7 +114,7 @@ if __name__ == '__main__':
         np.random.seed(args.random_seed)
     
     # create dataset from data files and train+save LM
-    main(args)
+    train_lm(args)
     
     # remove extra files created for training
     if os.path.exists('runs'):
