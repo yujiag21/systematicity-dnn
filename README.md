@@ -69,7 +69,7 @@ Create dataset and train a LM on it (see above). Then run:
 python train_clf.py -d *paths_to_datasets* -m *model_type* (--pairs)
 ```
 
-Adding **--pairs** classifier sentence pairs rather than single sentences. Here, the label is based on the data file (the first **-d** argument gets the label 0, the second gets 1, etc.). Without **--pairs** the label is taken from tgt.
+Adding **--pairs** classifies sentence pairs rather than single sentences. Here, the label is based on the data file (the first **-d** argument gets the label 0, the second gets 1, etc.). Without **--pairs** the label is taken from tgt.
 
 Using cpu by default; switch to gpu with **--use_cuda**.
 
