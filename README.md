@@ -27,8 +27,12 @@ Some examples:
 ```bash
 python create_datasets.py -task copy -voc ab
 python create_datasets.py -task different -voc cd
+python create_datasets.py -task custom -voc abc --custom_label X
 ```
 
+By default, dataset is saved to a folder in "data/", with the name "*task*_*vocabulary[:5]*_*int*.txt"\
+The int is to differentiate datasets with the same parameters to avoid overwriting.\
+Saving options can be modified via the arguments **--save_folder**, **--params_fname**, and **data_fname**.
 
 ## Training a language model (LM)
 
@@ -37,3 +41,13 @@ Create dataset (see above). Then run:
 ```bash
 python train_lm -d *paths_to_datasets* -m *model_type*
 ```
+
+Multiple datasets can be given as argument to -d. The example below first creates two datasets and then trains a LM based on them (default settings for dataset names based on task & vocabulary):
+
+```bash
+python create_datasets.py -task copy -voc ab
+python create_datasets.py -task different -voc cd
+
+python train_lm -d data/copy_ab_1/src_tgt.txt data/different_cd_1/src_tgt.txt -m bert
+```
+
