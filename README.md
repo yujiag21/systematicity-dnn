@@ -70,7 +70,10 @@ Using cpu by default; switch to gpu with **--use_cuda**.
 
 ## Full pipeline for training clf from scratch
 
-The example below first creates two datasets, then trains a LM based on them (default settings for dataset names based on task & vocabulary):
+The example below does the following (default settings for dataset names based on task & vocabulary):\
+1. creates two datasets
+2. trains a LM from the datapoints of the datasets (both src and tgt here due to **--pairs**)
+3. trains a clf from the same datasets, using the trained LM as the base model
 
 ```bash
 python create_datasets.py -task copy -voc ab
