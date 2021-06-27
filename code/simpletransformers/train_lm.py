@@ -15,7 +15,6 @@ os.environ["TOKENIZERS_PARALLELISM"] = "false"
 def train_lm(args):
     
     # Make training data file from original source files containing src-tgt pairs
-    
     lm_train_data = []
     
     for fpath in args.data:
