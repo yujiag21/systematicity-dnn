@@ -1,0 +1,3 @@
+static void FUNCTION_NAME ( ) { char * VAR_0 ; VAR_0 = " string " ; printLine ( VAR_0 ) ; },0
+static void FUNCTION_NAME ( ) { char * VAR_0 ; ; VAR_0 = " string " ; printLine ( VAR_0 ) ; },0
+void FUNCTION_NAME ( ) { char * VAR_0 ; ; printLine ( VAR_0 ) ; if ( VAR_0 ) { return True ; } },0
