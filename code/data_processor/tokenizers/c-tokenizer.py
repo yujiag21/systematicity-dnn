@@ -19,6 +19,7 @@ C_VAR_DEC_SET = {
 
 GENERIC_FUNCTION_NAME = "FUNCTION_NAME"
 GENERIC_VAR_TEMPLATE = "VAR_{}"
+GENERIC_STRING_VALUE = "STRING"
 
 
 def process_tokens(tokens, distinct_var=True):
@@ -37,8 +38,11 @@ def process_tokens(tokens, distinct_var=True):
     # filter out comments
     tokens = list(filter(lambda x: x.token_type != TokenType.COMMENT_SYMBOL ,tokens))
 
-    # map all declared variables to a generic name
+    # map all declared variables and strings to a generic name
     for token in tokens:
+        if token.token_type == TokenType.STRING:
+            token.token_value = GENERIC_STRING_VALUE
+
         if token.token_type == TokenType.IDENTIFIER:
             # replace function name with a generic name
             if token.line == 1:
@@ -62,12 +66,12 @@ def process_tokens(tokens, distinct_var=True):
     return tokens
 
 
-def convert_token_to_line(tokens, label):
+def convert_token_to_line(tokens, label, delimiter):
     tok_list = list()
     for token in tokens:
         tok_list.append(token.token_value)
 
-    data = " ".join(tok_list)
+    data = delimiter.join(tok_list)
     data += "," + str(label)
 
     return data
@@ -75,20 +79,23 @@ def convert_token_to_line(tokens, label):
 
 def main(args):
     path = args.data_dir
+    delimiter = args.delimiter
+    distinct_var = args.distinct_var
     print("Search for files in " + path)
     files = glob.glob(path + "**/*.c", recursive=True)
 
     data_list = []
 
-    label = "1"
     for file in files:
         if "goodB2G" in file or "goodG2B" in file:
             label = 0
+        else:
+            label = "1"
 
         tokens = sctokenizer.tokenize_file(filepath=file, lang='c')
-        tokens = process_tokens(tokens)
+        tokens = process_tokens(tokens, distinct_var)
 
-        data_list.append(convert_token_to_line(tokens, label))
+        data_list.append(convert_token_to_line(tokens, label, delimiter=delimiter))
 
     with open("processed_data.csv", "w") as f:
         f.write("\n".join(data_list))
@@ -98,5 +105,7 @@ if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('--data-dir', default='data/',
                             help="The data directory where the processed CWE files are stored. Use absolute path.")
+    arg_parser.add_argument('--delimiter', default='\t', help="Separator uesd to separate tokens")
+    arg_parser.add_argument('--distinct_var', type=bool, default=True)
     args = arg_parser.parse_args()
     main(args)
