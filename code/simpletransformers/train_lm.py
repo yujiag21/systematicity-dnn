@@ -21,7 +21,7 @@ def train_lm(args):
         data = open(fpath, 'r').readlines()
         data = [l.strip() for l in data]
         data = [l.split(args.delimiter) for l in data]
-        if args.only_src:
+        if args.pairs:
             lm_train_data += [s for (s,t) in data]
         else:
             lm_train_data += [s for (s,t) in data] + [t for (s,t) in data]
@@ -96,7 +96,7 @@ if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('-d', '--data', nargs='*') # paths to txt-files with data
     arg_parser.add_argument('--delimiter', default='\t') # separates src from tgt in data file
-    arg_parser.add_argument('--only_src', action='store_true') # use only src from data file for training
+    arg_parser.add_argument('--pairs', action='store_true') # use only src from data file for training
     arg_parser.add_argument('--save_data_dir', default='lm/lm_training_data') # folder to save LM training data
     arg_parser.add_argument('-m', '--model', default='bert') # model type
     arg_parser.add_argument('--learning_rate', type=float, default=4e-05) # learning rate
