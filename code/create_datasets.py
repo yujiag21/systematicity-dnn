@@ -4,6 +4,7 @@ import argparse
 import itertools
 import collections
 import numpy as np
+import time
 
 # simple formal language dataset: (subset of) all combinations with optional restrictions on tokens for positions
 class Dataset():
@@ -69,7 +70,7 @@ class Dataset():
         self.min_len = min_len
         self.max_len = max_len
         self.voc_in_position = voc_in_position
-        self.discarf_from_position = discard_from_position
+        self.discard_from_position = discard_from_position
         self.max_size = max_size
     
     # set target values
@@ -117,6 +118,9 @@ class Dataset():
 # specify dataset params and labels, create dataset, save to file
 def main(args):
     
+    print('Creating dataset for', args.task + '_' + ''.join(args.vocabulary[:args.max_fname_len]), end=':')
+    time0 = time.time()
+    
     # set random seed if specified
     if args.random_seed:
         np.random.seed(args.random_seed)
@@ -135,22 +139,8 @@ def main(args):
     # make src-tgt pairs
     src_tgt = list(zip(ds.src, ds.tgt))
     
-    if args.shuffle:
-        np.random.shuffle(src_tgt)
-    
-    # save folder name = task + vocabulary[:5] + differentiating int
-    cont_str = '...' if len(ds.vocabulary) > 5 else ''
-    save_folder = os.path.join(args.save_folder, '{0}_{1}'.format(args.task, ''.join(sorted(ds.vocabulary)[:5]) + cont_str))
-    
-    # add int to save_folder name for differentiating between variants
-    folder_int = 1
-    while os.path.exists('{0}_{1}'.format(args.save_folder, folder_int)):
-        folder_int += 1
-    save_folder = '{0}_{1}'.format(save_folder, folder_int)
-    
-    if not os.path.exists(save_folder):
-        os.makedirs(save_folder)
-    
+    np.random.shuffle(src_tgt)
+
     # save dataset parameters to json file
     params = {'task':args.task,
               'vocabulary':args.vocabulary,
@@ -158,22 +148,53 @@ def main(args):
               'max_len':args.max_len,
               'voc_in_position':args.voc_in_position,
               'discard_from_position':args.discard_from_position,
-              'shuffle':args.shuffle,
               'random_seed':args.random_seed,
-              'max_size':args.max_size}
+              'size':len(src_tgt)}    
+
+    # make train-eval split
+    train, val = [], []
+    if args.eval_split:
+        eval_split = round(args.eval_split * len(src_tgt))
+        train, val = src_tgt[eval_split:], src_tgt[:eval_split]
+        params['train_size'] = len(train)
+        params['eval_size'] = len(val)
     
-    with open(os.path.join(save_folder, args.params_fname), 'w') as f:
+    # save folder name = task + vocabulary[:max_fname_len] + optional differentiating int
+    cont_str = '...' if len(ds.vocabulary) > args.max_fname_len else ''
+    save_folder = os.path.join(args.save_folder, args.task, ''.join(args.vocabulary[:args.max_fname_len]) + cont_str)
+    
+    # add int to save_folder name for differentiating between variants
+    if args.dont_overwrite:
+        folder_int = 1
+        while os.path.exists('{0}_{1}'.format(args.save_folder, folder_int)):
+            folder_int += 1
+        save_folder = '{0}_{1}'.format(save_folder, folder_int)
+    
+    if not os.path.exists(save_folder):
+        os.makedirs(save_folder)
+        
+    with open(os.path.join(save_folder, 'params.json'), 'w') as f:
         json.dump(params, f)
     
     # save data to a txt-file: tokens separated by separator, src and tgt separated by delimiter
-    with open(os.path.join(save_folder, args.data_fname), 'w') as f:
+    with open(os.path.join(save_folder, 'all.txt'), 'w') as f:
         for src, tgt in src_tgt:
             f.write(args.separator.join(src) + args.delimiter + args.separator.join(tgt) + '\n') # add separators and delimiters
+    
+    if train!=[] and val!=[]:
+        with open(os.path.join(save_folder, 'train.txt'), 'w') as f:
+            for src, tgt in train:
+                f.write(args.separator.join(src) + args.delimiter + args.separator.join(tgt) + '\n') # add separators and delimiters
+        with open(os.path.join(save_folder, 'eval.txt'), 'w') as f:
+            for src, tgt in val:
+                f.write(args.separator.join(src) + args.delimiter + args.separator.join(tgt) + '\n') # add separators and delimiters
+    
+    print(' took ', round(time.time()-time0, 2), 'seconds')
 
 
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument('-task', '--task', required=True) # copy/reverse/replace/uppercase/count/custom
+    arg_parser.add_argument('-task', '--task', required=True) # copy/different/reverse/count/custom
     arg_parser.add_argument('-voc', '--vocabulary', type=list, required=True)
     arg_parser.add_argument('--min_len', type=int, default=1)
     arg_parser.add_argument('--max_len', type=int, default=0) # vocabulary length by default
@@ -181,12 +202,12 @@ if __name__ == '__main__':
     arg_parser.add_argument('--discard_from_position', type=dict, default={})
     arg_parser.add_argument('--custom_label', default='X')
     arg_parser.add_argument('--max_size', type=int, default=10000)
-    arg_parser.add_argument('--shuffle', type=bool, default=True) # randomize order of src-tgt pairs
     arg_parser.add_argument('--random_seed', type=int, default=12345) # set random seed
     arg_parser.add_argument('--separator', default=' ') # separates tokens in saved txt-file
     arg_parser.add_argument('--delimiter', default='\t') # separates src from tgt in saved txt-file
+    arg_parser.add_argument('--eval_split', type=float, default=0.2) # train-eval split
     arg_parser.add_argument('--save_folder', default='data/')
-    arg_parser.add_argument('--params_fname', default='params.json')
-    arg_parser.add_argument('--data_fname', default='src_tgt.txt')
+    arg_parser.add_argument('--dont_overwrite', action='store_true') # add differentiating int to folder
+    arg_parser.add_argument('--max_fname_len', type=int, default=100)
     args = arg_parser.parse_args()
     main(args)

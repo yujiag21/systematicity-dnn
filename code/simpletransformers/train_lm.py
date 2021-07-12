@@ -35,21 +35,26 @@ def train_lm(args):
     if not os.path.exists(args.save_data_dir):
         os.makedirs(args.save_data_dir)
     
-    # filepath to save training data: named by vocabulary[:5] + added int for differentiating between variants
-    cont_str = '...' if len(lm_train_voc) > 5 else ''
-    data_int = 1
-    train_fname = ''.join(lm_train_voc[:5]) + cont_str
-    while os.path.exists('{0}_{1}.txt'.format(train_fname, data_int)):
-        data_int += 1
-    train_file = '{0}_{1}.txt'.format(train_fname, data_int)
-    # train_file = ''.join(lm_train_voc[:5]) + cont_str + '.txt'
-    train_file = os.path.join(args.save_data_dir, train_file)
+    # filepath to save training data: named by vocabulary[:max_fname_len] + added int for differentiating between variants
+    cont_str = '...' if len(lm_train_voc) > args.max_fname_len else ''
+    train_fname = ''.join(lm_train_voc[:args.max_fname_len]) + cont_str
+    
+    if args.dont_overwrite:
+        data_int = 1
+        while os.path.exists('{0}_{1}.txt'.format(train_fname, data_int)):
+            data_int += 1
+        train_fname = '{0}_{1}.txt'.format(train_fname, data_int)
+    
+    train_file = os.path.join(args.save_data_dir, train_fname)
     
     # add int to save_folder name for differentiating between variants
-    folder_int = 1
-    while os.path.exists('{0}_{1}.txt'.format(train_file, folder_int)):
-        folder_int += 1
-    save_train_fname = '{0}_{1}'.format(train_file, folder_int) + '.txt'
+    if args.dont_overwrite:
+        folder_int = 1
+        while os.path.exists('{0}_{1}.txt'.format(train_file, folder_int)):
+            folder_int += 1
+        train_file = '{0}_{1}'.format(train_file, folder_int)
+    
+    train_file += '.txt'
     
     with open(train_file, 'w') as f:
         for seq in lm_train_data:
@@ -76,14 +81,19 @@ def train_lm(args):
     model_args.eval_batch_size = args.batch_size
     model_args.use_early_stopping = args.use_early_stopping
     
-    # output folder name: model + vocabulary + int differentiating between variants
-    output_name = '{0}_{1}'.format(args.model, train_fname)
-    output_folder = os.path.join(args.output_dir, output_name)
-    output_int = 1
-    while os.path.exists('{0}_{1}'.format(output_folder, output_int)):
-        output_int += 1
+    # # output folder name: model + vocabulary + int differentiating between variants
+    # output_name = '{0}_{1}'.format(args.model, train_fname)
+    # output_folder = os.path.join(args.output_dir, output_name)
     
-    model_args.output_dir = '{0}_{1}'.format(output_folder, output_int)
+    output_folder = os.path.join(args.output_dir, args.model)
+    
+    if args.dont_overwrite:
+        output_int = 1
+        while os.path.exists('{0}_{1}'.format(output_folder, output_int)):
+            output_int += 1
+        output_folder = '{0}_{1}'.format(output_folder, output_int)
+    
+    model_args.output_dir = output_folder
     model_args.best_model_dir = os.path.join(model_args.output_dir, 'best_model')
     
     model = LanguageModelingModel(args.model, None, args=model_args, train_files=train_file, use_cuda=args.use_cuda)
@@ -99,14 +109,16 @@ if __name__ == '__main__':
     arg_parser.add_argument('--pairs', action='store_true') # use only src from data file for training
     arg_parser.add_argument('--save_data_dir', default='lm/lm_training_data') # folder to save LM training data
     arg_parser.add_argument('-m', '--model', default='bert') # model type
-    arg_parser.add_argument('--learning_rate', type=float, default=4e-05) # learning rate
+    arg_parser.add_argument('-lr', '--learning_rate', type=float, default=4e-05) # learning rate
     arg_parser.add_argument('--epochs', type=int, default=5) # number of training epochs
     arg_parser.add_argument('--vocab_size', type=int, default=30000) # max vocabulary size
-    arg_parser.add_argument('--batch_size', type=int, default=1) # batch size
+    arg_parser.add_argument('--batch_size', type=int, default=16) # batch size
     arg_parser.add_argument('--output_dir', default='lm') # folder to save LM
-    arg_parser.add_argument('--use_early_stopping', type=bool, default=True) # stop training when eval loss doesn't decrease
+    arg_parser.add_argument('--use_early_stopping', action='store_true') # stop training when eval loss doesn't decrease
     arg_parser.add_argument('--random_seed', type=int, default=12345) # fix random seed
+    arg_parser.add_argument('--dont_overwrite', action='store_true') # add differentiating int to folder
     arg_parser.add_argument('--use_cuda', action='store_true') # gpu/cpu
+    arg_parser.add_argument('--max_fname_len', type=int, default=100)
     args = arg_parser.parse_args()
     
     if args.random_seed:
