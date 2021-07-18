@@ -46,6 +46,18 @@ train_task2="$data_folder/${TASKS[1]}/$V_task2$V_both/train.txt"
 eval_task2="$data_folder/${TASKS[1]}/$V_task2$V_both/eval.txt"
 test_task2="$data_folder/${TASKS[1]}/$V_task1/all.txt"
 
+# count number of training and eval samples
+
+printf "\nNumber of task1 training smaples: " >> $results
+wc -l $train_task1 >> $results
+printf "\nNumber of task1 evaluation smaples: " >> $results
+wc -l $eval_task1 >> $results
+printf "\nNumber of task2 training smaples: " >> $results
+wc -l $train_task2 >> $results
+printf "\nNumber of task2 evaluation smaples: " >> $results
+wc -l $eval_task2 >> $results
+printf "\n" >> $results
+
 cuda=''
 if $USE_CUDA
 then

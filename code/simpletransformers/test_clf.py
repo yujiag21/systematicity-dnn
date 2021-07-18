@@ -6,6 +6,25 @@ import pandas as pd
 import argparse
 from simpletransformers.classification import (ClassificationModel, ClassificationArgs)
 
+
+
+def calculate_metrics_from_result(result):
+    tp = result["tp"]
+    tn = result["tn"]
+    fp = result["fp"]
+    fn = result["fn"]
+
+    precision = tp/(tp+ fp)
+    recall = tp / (tp +fn)
+
+    f1 = tp / (tp + 0.5*(fp+fn))
+
+    result["precision"] = precision
+    result['recall'] = recall
+    result['f1'] = f1
+
+    return result
+
 def test_trained_clf(args):
     
     clf_folder = os.path.join(args.classifier, args.clf_best_model_folder)
@@ -40,6 +59,8 @@ def test_trained_clf(args):
     #     test_df.columns = ["text", "labels"]
     
     result, outputs, wrong_predictions = model.eval_model(test_df)
+
+    result = calculate_metrics_from_result(result)
     
     print(result)
 
