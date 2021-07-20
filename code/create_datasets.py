@@ -107,18 +107,17 @@ class Dataset():
         
         # sequqneces mapped to token counts (for optionally specified tokens; all tokens counted by default)
         elif task=='count':
-            self.tgt = [len(seq) for seq in self.src]
+            self.tgt = [str(len(seq)) for seq in self.src]
         
         # sequences mapped to user-given custom label
         elif task=='custom':
-            self.tgt = [custom_label for seq in self.src]
+            self.tgt = [str(custom_label) for seq in self.src]
         
         assert len(self.src) == len(self.tgt) # just a sanity check
             
 # specify dataset params and labels, create dataset, save to file
 def main(args):
     
-    print('Creating dataset for', args.task + '_' + ''.join(args.vocabulary[:args.max_fname_len]), end=':')
     time0 = time.time()
     
     # set random seed if specified
@@ -160,8 +159,13 @@ def main(args):
         params['eval_size'] = len(val)
     
     # save folder name = task + vocabulary[:max_fname_len] + optional differentiating int
+    save_folder = os.path.join(args.save_folder, args.task, ''.join(args.vocabulary[:args.max_fname_len]))
     cont_str = '...' if len(ds.vocabulary) > args.max_fname_len else ''
-    save_folder = os.path.join(args.save_folder, args.task, ''.join(args.vocabulary[:args.max_fname_len]) + cont_str)
+    save_folder + cont_str
+    
+    # If task is 'count', add numbers to count to save folder name
+    if args.task == 'count':
+        save_folder = '{0}_{1}-{2}'.format(save_folder, ds.min_len, ds.max_len)       
     
     # add int to save_folder name for differentiating between variants
     if args.dont_overwrite:
@@ -169,6 +173,8 @@ def main(args):
         while os.path.exists('{0}_{1}'.format(args.save_folder, folder_int)):
             folder_int += 1
         save_folder = '{0}_{1}'.format(save_folder, folder_int)
+    
+    print('Creating dataset for', save_folder, end=':')
     
     if not os.path.exists(save_folder):
         os.makedirs(save_folder)
@@ -189,7 +195,7 @@ def main(args):
             for src, tgt in val:
                 f.write(args.separator.join(src) + args.delimiter + args.separator.join(tgt) + '\n') # add separators and delimiters
     
-    print(' took ', round(time.time()-time0, 2), 'seconds')
+    print(' took', round(time.time()-time0, 2), 'seconds')
 
 
 if __name__ == '__main__':

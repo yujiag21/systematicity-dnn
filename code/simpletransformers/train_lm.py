@@ -22,9 +22,9 @@ def train_lm(args):
         data = [l.strip() for l in data]
         data = [l.split(args.delimiter) for l in data]
         if args.pairs:
-            lm_train_data += [s for (s,t) in data]
-        else:
             lm_train_data += [s for (s,t) in data] + [t for (s,t) in data]
+        else:
+            lm_train_data += [s for (s,t) in data]
     
     lm_train_data = sorted(set(lm_train_data))
     np.random.shuffle(lm_train_data)

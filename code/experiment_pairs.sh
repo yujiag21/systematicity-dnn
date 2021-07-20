@@ -21,7 +21,8 @@ data_folder='data'
 lm_folder='lm'
 clf_folder='clf'
 
-results='results.txt'
+results='results/results.txt'
+mkdir -p 'results'
 
 echo "Tasks: ${TASKS[@]}" >> $results
 echo "V_task1: $V_task1" >> $results

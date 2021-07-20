@@ -1,6 +1,7 @@
 # Fine-tuning a LM to sequence (pair) classification
 
 import os
+import json
 import shutil
 import logging
 import argparse
@@ -18,9 +19,6 @@ def train_clf(args):
     tgt_to_int = {}
     max_int = 0
     
-    # for documentation: mapping from label ints to names (data path if pairs, tgt otherwise)
-    label_names = {}
-    
     for i,fpath in enumerate(args.train_data):
         data = open(fpath, 'r').readlines()
         data = [l.strip() for l in data]
@@ -29,14 +27,13 @@ def train_clf(args):
         # classifying pairs: format [src, tgt, label]; each file has a unique label
         if args.pairs:
             clf_train_data += [[s,t,i] for (s,t) in data]
-            label_names[i] = fpath
-        
+            tgt_to_int[i] = fpath
+            
         # classifying src to tgt: format [src, tgt]
         else:
             for (s,t) in data:
                 if t not in tgt_to_int:
                     tgt_to_int[t] = max_int
-                    label_names[max_int] = t
                     max_int += 1
                 clf_train_data.append([s, tgt_to_int[t]])
     np.random.shuffle(clf_train_data)
@@ -83,8 +80,6 @@ def train_clf(args):
     model_args.eval_batch_size = args.batch_size
     model_args.use_early_stopping = args.use_early_stopping   
     
-    model_args.label_names = label_names
-    
     # output folder name: model + task_name + optional int differentiating between variants
     output_name = args.model
     if args.task_name:
@@ -97,6 +92,13 @@ def train_clf(args):
             output_int += 1
         output_folder = '{0}_{1}'.format(output_folder, output_int)
         
+    if not os.path.exists(output_folder):
+        os.makedirs(output_folder)
+    
+    # save label names to json file
+    with open(os.path.join(output_folder, 'label_names.json'), 'w') as f:
+        json.dump(tgt_to_int, f)
+    
     model_args.output_dir = output_folder
     model_args.best_model_dir = os.path.join(model_args.output_dir, 'best_model')
     
@@ -104,7 +106,7 @@ def train_clf(args):
     lm_folder = os.path.join(args.language_model, args.lm_best_model_folder)
     
     # create and train the clf
-    model = ClassificationModel(args.model, lm_folder, args=model_args, use_cuda=args.use_cuda)
+    model = ClassificationModel(args.model, lm_folder, args=model_args, num_labels=len(tgt_to_int), use_cuda=args.use_cuda)
     model.train_model(train_df=train_df, eval_df=eval_df)
 
 if __name__ == '__main__':
