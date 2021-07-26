@@ -54,12 +54,13 @@ def test_trained_clf(args):
     
     if args.pairs:
         test_df.columns = ["text_a", "text_b", "labels"]
+        tgt = [i for (s, t, i) in clf_test_data]
     else:
         test_df.columns = ["text", "labels"]
+        tgt = [t for (s,t) in clf_test_data]
     
     result, outputs, wrong_predictions = model.eval_model(test_df)
     preds = [list(l).index(max(l)) for l in outputs]
-    tgt = [t for (s,t) in clf_test_data]
     precision, recall, f1, support = precision_recall_fscore_support(y_true=tgt, y_pred=preds, average='macro', zero_division=0)
     
     result['precision'] = precision

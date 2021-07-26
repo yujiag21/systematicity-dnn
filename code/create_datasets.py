@@ -15,6 +15,8 @@ class Dataset():
                  max_len=0, # longest sequence; len(vocabulary) if 0
                  voc_in_position={}, # dict from positions to tokens only allowed in those positions
                  discard_from_position={}, # dict from positions to list of tokens in vocabulary: don't put these tokens in these positions
+                 dont_repeat=[], # subset of vocabulary to not repeat in same str
+                 repeat=[], # subset of vocabulary to always repeat in same str
                  max_size=10000): # maximum number of datapoints in resulting dataset)
 
         sequences = []
@@ -65,6 +67,41 @@ class Dataset():
                 
             sequences = list(sequences)
             
+        # no repetition of tokens in "dont_repeat"
+        if dont_repeat:
+            for i,seq in enumerate(sequences):
+                seq = list(seq)
+                for c in dont_repeat:
+                    while seq.count(c) > 1:
+                        seq.remove(c)
+                while len(seq) < min_len:
+                    can_add = set(vocabulary) - (set(seq) & set(dont_repeat))
+                    if not can_add:
+                        print('Contradictory requirements for "min_len" and "dont_repeat"')
+                        return
+                    add_position = np.random.choice(list(range(len(seq))))
+                    seq = seq[:add_position] + [np.random.choice(list(can_add))] + seq[add_position:]
+                sequences[i] = ''.join(seq)
+            sequences = list(set(sequences))
+        
+        # repetition of some token in "repeat" in each src datapoint
+        if repeat:
+            for i,seq in enumerate(sequences):
+                seq = list(seq)
+                if max([seq.count(c) for c in repeat]) < 2:
+                    to_repeat = np.random.choice(list(repeat))
+                    while seq.count(to_repeat) < 2:
+                        position = np.random.choice(range(len(seq)+1))
+                        seq = seq[:position] + [to_repeat] + seq[position:]
+                    while len(seq) > max_len:
+                        can_delete = [c for c in seq if c!=to_repeat or seq.count(c)>2]
+                        if not can_delete:
+                            print('Contradictory requirements for "max_len" and "repeat"')
+                            return
+                        seq.remove(np.random.choice(can_delete))
+                    sequences[i] = ''.join(seq)
+            sequences = list(set(sequences))
+            
         self.src = sorted(sequences)
         self.vocabulary = vocabulary
         self.min_len = min_len
@@ -75,13 +112,13 @@ class Dataset():
     
     # set target values
     def set_tgt(self,
-                task='copy', # copy/different/reverse/uppercase/count/custom
+                task='copy', # copy/different/reverse/uppercase/count/repeat/custom
                 custom_label='X', # label in custom task
                 pad_to=0,
                 pad_str='P',
                 randomize_pad=False): 
         
-        assert task in ['copy', 'different', 'reverse', 'replace', 'uppercase', 'count', 'custom']
+        assert task in ['copy', 'different', 'reverse', 'replace', 'uppercase', 'count', 'repeat', 'same_size', 'different_size', 'custom']
         
         # sequences mapped to themselves
         if task=='copy':
@@ -91,13 +128,13 @@ class Dataset():
         elif task == 'different':
             if len(self.src) < 2:
                 print('At least 2 source expressions needed to make targets')
-            else:
-                self.tgt = []
-                for seq in self.src:
+                return
+            self.tgt = []
+            for seq in self.src:
+                tgt_seq = np.random.choice(self.src)
+                while seq == tgt_seq:
                     tgt_seq = np.random.choice(self.src)
-                    while seq == tgt_seq:
-                        tgt_seq = np.random.choice(self.src)
-                    self.tgt.append(tgt_seq)
+                self.tgt.append(tgt_seq)
             assert [s!=t for (s,t) in zip(self.src, self.tgt)] # just a sanity check
         
         # sequences mapped to their reversal
@@ -108,9 +145,21 @@ class Dataset():
         elif task=='uppercase':
             self.tgt = [seq.upper() for seq in self.src]
         
-        # sequqneces mapped to token counts (for optionally specified tokens; all tokens counted by default)
+        # sequqneces mapped to token counts
         elif task=='count':
             self.tgt = [str(len(seq)) for seq in self.src]
+        
+        elif task=='repeat':
+            self.tgt = [str(int(len(seq)!=len(set(seq)))) for seq in self.src]
+        
+        elif task=='same_size':
+            self.tgt = [np.random.choice([s for s in self.src if len(s)==len(seq)]) for seq in self.src]
+        
+        elif task=='different_size':
+            if len(set([len(seq) for seq in self.src])) == 1:
+                print('At least two lenghts needed in source to make targets')
+                return
+            self.tgt = [np.random.choice([s for s in self.src if len(s)!=len(seq)]) for seq in self.src]
         
         # sequences mapped to user-given custom label
         elif task=='custom':
@@ -149,6 +198,8 @@ def main(args):
     ds = Dataset(vocabulary=args.vocabulary,
                  min_len=args.min_len,
                  max_len=args.max_len,
+                 dont_repeat=args.dont_repeat,
+                 repeat=args.repeat,
                  voc_in_position=args.voc_in_position,
                  discard_from_position=args.discard_from_position,
                  max_size=args.max_size)
@@ -190,7 +241,9 @@ def main(args):
     
     # If task is 'count', add numbers to count to save folder name
     if args.task == 'count':
-        save_folder = '{0}_{1}-{2}'.format(save_folder, ds.min_len, ds.max_len)       
+        save_folder = '{0}_{1}-{2}'.format(save_folder, ds.min_len, ds.max_len)  
+    
+    save_folder += '_' + args.save_suffix
     
     # add int to save_folder name for differentiating between variants
     if args.dont_overwrite:
@@ -225,8 +278,10 @@ def main(args):
 
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument('-task', '--task', required=True) # copy/different/reverse/count/custom
+    arg_parser.add_argument('-task', '--task', required=True) # copy/different/reverse/count/repeat/custom
     arg_parser.add_argument('-voc', '--vocabulary', type=list, required=True)
+    arg_parser.add_argument('--dont_repeat', type=list, default=[]) # # subset of vocabulary not to repeat in same str
+    arg_parser.add_argument('--repeat', type=list, default=[]) # subset of vocabulary to always repeat in same str
     arg_parser.add_argument('--min_len', type=int, default=1)
     arg_parser.add_argument('--max_len', type=int, default=0) # vocabulary length by default
     arg_parser.add_argument('--voc_in_position', type=dict, default={})
@@ -241,6 +296,7 @@ if __name__ == '__main__':
     arg_parser.add_argument('--randomize_pad', action='store_true') # pad in random positions instead of end
     arg_parser.add_argument('--eval_split', type=float, default=0.2) # train-eval split
     arg_parser.add_argument('--save_folder', default='data/')
+    arg_parser.add_argument('--save_suffix', default='') # add to save_folder name
     arg_parser.add_argument('--dont_overwrite', action='store_true') # add differentiating int to folder
     arg_parser.add_argument('--max_fname_len', type=int, default=100)
     args = arg_parser.parse_args()
