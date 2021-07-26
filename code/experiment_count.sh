@@ -10,6 +10,17 @@ max_len_task1=2 # longest sequences for task1
 min_len_task2=3 # shortest sequences for task2
 max_len_task2=4 # longest sequences for task2
 
+# use padding to make strings of the same length; padding str not counted (no padding if PAD_TO=0; otherwise make sure PAD_TO > max_len)
+PAD_TO=5
+pad_str='P'
+
+RANDOMIZE_PAD=true
+randomize_pad=''
+if $RANDOMIZE_PAD
+then
+  randomize_pad='--randomize_pad'
+fi
+
 MODEL='bert'
 EPOCHS=5
 EVAL_SPLIT=0.2
@@ -32,11 +43,17 @@ echo "Model: $MODEL" >> $results
 ########################################################################################################################################################################
 
 # Create datasets
-python create_datasets.py -task count -voc "$V_task1$V_both" --min_len "$min_len_task1" --max_len "$max_len_task1" --save_folder "$data_folder" --eval_split $EVAL_SPLIT
-max_train_size=$(< "$data_folder/count/${V_task1}${V_both}_$min_len_task1-$max_len_task1/all.txt" wc -l) # get size of task1 dataset, fix to size of the task2 to ensure balance
-python create_datasets.py -task count -voc "$V_task1" --min_len "$min_len_task2" --max_len "$max_len_task2" --save_folder "$data_folder" --eval_split 0
-python create_datasets.py -task count -voc "$V_task2$V_both" --min_len "$min_len_task2" --max_len "$max_len_task2" --save_folder "$data_folder" --eval_split $EVAL_SPLIT --max_size "$max_train_size"
-python create_datasets.py -task count -voc "$V_task2" --min_len "$min_len_task1" --max_len "$max_len_task1" --save_folder "$data_folder" --eval_split 0
+
+python create_datasets.py -task count -voc "$V_task1$V_both" --min_len "$min_len_task1" --max_len "$max_len_task1" --pad_to "$PAD_TO" --pad_str "$pad_str" $randomize_pad --save_folder "$data_folder" --eval_split $EVAL_SPLIT
+
+# get size of task1 dataset, fix to size of the task2 to ensure balance
+max_train_size=$(< "$data_folder/count/${V_task1}${V_both}_$min_len_task1-$max_len_task1/all.txt" wc -l)
+
+python create_datasets.py -task count -voc "$V_task1" --min_len "$min_len_task2" --max_len "$max_len_task2" --pad_to "$PAD_TO" --pad_str "$pad_str" $randomize_pad --save_folder "$data_folder" --eval_split 0
+
+python create_datasets.py -task count -voc "$V_task2$V_both" --min_len "$min_len_task2" --max_len "$max_len_task2" --pad_to "$PAD_TO" --pad_str "$pad_str" $randomize_pad --save_folder "$data_folder" --eval_split $EVAL_SPLIT --max_size "$max_train_size"
+
+python create_datasets.py -task count -voc "$V_task2" --min_len "$min_len_task1" --pad_to "$PAD_TO" --pad_str "$pad_str" $randomize_pad --max_len "$max_len_task1" --save_folder "$data_folder" --eval_split 0
 
 # Train and test datasets
 train_task1="$data_folder/count/${V_task1}${V_both}_$min_len_task1-$max_len_task1/train.txt"

@@ -76,7 +76,10 @@ class Dataset():
     # set target values
     def set_tgt(self,
                 task='copy', # copy/different/reverse/uppercase/count/custom
-                custom_label='X'): # label in custom task
+                custom_label='X', # label in custom task
+                pad_to=0,
+                pad_str='P',
+                randomize_pad=False): 
         
         assert task in ['copy', 'different', 'reverse', 'replace', 'uppercase', 'count', 'custom']
         
@@ -114,7 +117,25 @@ class Dataset():
             self.tgt = [str(custom_label) for seq in self.src]
         
         assert len(self.src) == len(self.tgt) # just a sanity check
-            
+        
+        # padding
+        if pad_to:
+            for i,s in enumerate(self.src):
+                s_pad_add = max(0, pad_to - len(s))
+                if randomize_pad and s_pad_add:
+                    s_pad_ix = sorted(np.random.choice(list(range(pad_to)), s_pad_add, replace=False))
+                    s_padded = ''
+                    for j in range(pad_to):
+                        if j in s_pad_ix:
+                            s_padded += pad_str
+                        else:
+                            s_padded += s[0]
+                            s = s[1:]
+                    self.src[i] = s_padded
+                elif s_pad_add:
+                    s_padded = s + ''.join([pad_str for j in range(s_pad_add)])
+                    self.src[i] = s_padded
+
 # specify dataset params and labels, create dataset, save to file
 def main(args):
     
@@ -133,7 +154,11 @@ def main(args):
                  max_size=args.max_size)
     
     # make targets
-    ds.set_tgt(task=args.task, custom_label=args.custom_label)
+    ds.set_tgt(task=args.task,
+               custom_label=args.custom_label,
+               pad_to=args.pad_to,
+               pad_str=args.pad_str,
+               randomize_pad=args.randomize_pad)
     
     # make src-tgt pairs
     src_tgt = list(zip(ds.src, ds.tgt))
@@ -211,6 +236,9 @@ if __name__ == '__main__':
     arg_parser.add_argument('--random_seed', type=int, default=12345) # set random seed
     arg_parser.add_argument('--separator', default=' ') # separates tokens in saved txt-file
     arg_parser.add_argument('--delimiter', default='\t') # separates src from tgt in saved txt-file
+    arg_parser.add_argument('--pad_to', type=int, default=0) # pad to same size
+    arg_parser.add_argument('--pad_str', default='P') # char to use for padding
+    arg_parser.add_argument('--randomize_pad', action='store_true') # pad in random positions instead of end
     arg_parser.add_argument('--eval_split', type=float, default=0.2) # train-eval split
     arg_parser.add_argument('--save_folder', default='data/')
     arg_parser.add_argument('--dont_overwrite', action='store_true') # add differentiating int to folder
