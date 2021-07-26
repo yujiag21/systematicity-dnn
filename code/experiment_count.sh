@@ -77,11 +77,19 @@ clf="$clf_folder/$MODEL"
 
 
 # Test trained classifier
+eval_csv=count_"$V_task1$V_task2$V_both"_eval_metric.csv
+test_csv=count_"$V_task1$V_task2$V_both"_test_metric.csv
 
 printf "Evaluation results: " >> $results
 python simpletransformers/test_clf.py -d "$eval_task1" "$eval_task2" -m "$MODEL" -clf $clf $cuda >> $results
 
+printf "Gather evaluation results on different epochs of the model..."
+python simpletransformers/collect_clf_result.py -d "$eval_task1" "$eval_task2" -m "$MODEL" -clf $clf $cuda -rf "$eval_csv"
+
 printf "Test results: " >> $results
 python simpletransformers/test_clf.py -d "$test_task1" "$test_task2" -m "$MODEL" -clf $clf $cuda >> $results
+
+printf "Gather test results on different epochs of the model..."
+python simpletransformers/collect_clf_result.py -d "$test_task1" "$test_task2" -m "$MODEL" -clf $clf $cuda -rf "$test_csv"
 
 printf "\n" >> $results
