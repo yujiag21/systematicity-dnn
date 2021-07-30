@@ -1,6 +1,7 @@
 # Experiment parameters (modify these to run different experiments)
 
-TASKS=('copy' 'different') # task1, task2
+TASKS=('same_size' 'different_size') # task1, task2
+#TASKS=('copy' 'different')
 
 V_task1='abc' # vocabulary used only in task1 when training
 V_task2='xyz' # vocabulary only used in task2 when training
@@ -14,14 +15,14 @@ USE_CUDA=false # GPU/CPU
 LM_BATCH_SIZE=16
 CLF_BATCH_SIZE=16
 
-min_len=3 # shortest sequences
-max_len=3 # longest sequences
+min_len=1 # shortest sequences
+max_len=4 # longest sequences
 
 data_folder='data'
 lm_folder='lm'
 clf_folder='clf'
 
-results='results/results.txt'
+results='results/results_size.txt'
 mkdir -p 'results'
 
 echo "Tasks: ${TASKS[@]}" >> $results
