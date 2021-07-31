@@ -8,27 +8,6 @@ https://simpletransformers.ai/
 All code is in the folder *code*\
 The files train_lm.py and train_clf.py are in the folder *code/simpletransformers*.
 
-### Setup on Compute Canada
-Using anaconda/miniconda:
-
-
-1. Create and activate virtual environment
-- conda create -n systematicity-dnn python=3.8 pandas tqdm
-- conda activate systematicity-dnn
-
-2. Install dependencies
-- conda install pytorch cudatoolkit=10.0 -c pytorch
-- conda install scipy
-- conda install scikit-learn
-- conda install -c conda-forge transformers
-- conda install -c conda-forge tensorboardx
-- conda install -c conda-forge pyarrow
-
-
-3. Install simpletransformers:
-- pip install simpletransformers
-
-
 ## Creating formal language datasets
 
 Run:
