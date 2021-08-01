@@ -237,13 +237,14 @@ def main(args):
     # save folder name = task + vocabulary[:max_fname_len] + optional differentiating int
     save_folder = os.path.join(args.save_folder, args.task, ''.join(args.vocabulary[:args.max_fname_len]))
     cont_str = '...' if len(ds.vocabulary) > args.max_fname_len else ''
-    save_folder + cont_str
+    save_folder = save_folder + cont_str
     
     # If task is 'count', add numbers to count to save folder name
     if args.task == 'count':
         save_folder = '{0}_{1}-{2}'.format(save_folder, ds.min_len, ds.max_len)  
-    
-    save_folder += '_' + args.save_suffix
+
+    if args.save_suffix:
+        save_folder += '_' + args.save_suffix
     
     # add int to save_folder name for differentiating between variants
     if args.dont_overwrite:
