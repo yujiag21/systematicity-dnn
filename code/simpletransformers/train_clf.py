@@ -78,7 +78,7 @@ def train_clf(args):
     model_args.vocab_size = args.vocab_size
     model_args.train_batch_size = args.batch_size
     model_args.eval_batch_size = args.batch_size
-    model_args.use_early_stopping = args.use_early_stopping   
+    model_args.use_early_stopping = args.use_early_stopping
     
     # output folder name: model + task_name + optional int differentiating between variants
     output_name = args.model
@@ -132,6 +132,11 @@ if __name__ == '__main__':
     
     if args.random_seed:
         np.random.seed(args.random_seed)
+
+    # clean clf folder when we allow overwrite
+    output_model_dir = os.path.join(args.output_dir, args.model)
+    if not args.dont_overwrite and os.path.exists(output_model_dir):
+        shutil.rmtree(output_model_dir)
     
     # create dataset from data files and train+save clf
     train_clf(args)
