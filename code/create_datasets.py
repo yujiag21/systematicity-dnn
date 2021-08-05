@@ -116,6 +116,7 @@ class Dataset():
                 custom_label='X', # label in custom task
                 pad_to=0,
                 pad_str='P',
+                src_prefix='',
                 randomize_pad=False): 
         
         assert task in ['copy', 'different', 'reverse', 'replace', 'uppercase', 'count', 'repeat', 'same_size', 'different_size', 'custom']
@@ -184,6 +185,9 @@ class Dataset():
                 elif s_pad_add:
                     s_padded = s + ''.join([pad_str for j in range(s_pad_add)])
                     self.src[i] = s_padded
+                    
+        if src_prefix:
+            self.src = [src_prefix + s for s in self.src]
 
 # specify dataset params and labels, create dataset, save to file
 def main(args):
@@ -209,7 +213,8 @@ def main(args):
                custom_label=args.custom_label,
                pad_to=args.pad_to,
                pad_str=args.pad_str,
-               randomize_pad=args.randomize_pad)
+               randomize_pad=args.randomize_pad,
+               src_prefix=args.src_prefix)
     
     # make src-tgt pairs
     src_tgt = list(zip(ds.src, ds.tgt))
@@ -295,6 +300,7 @@ if __name__ == '__main__':
     arg_parser.add_argument('--pad_to', type=int, default=0) # pad to same size
     arg_parser.add_argument('--pad_str', default='P') # char to use for padding
     arg_parser.add_argument('--randomize_pad', action='store_true') # pad in random positions instead of end
+    arg_parser.add_argument('--src_prefix', default='') # char to use as source prefix (e.g. for indicating task)
     arg_parser.add_argument('--eval_split', type=float, default=0.2) # train-eval split
     arg_parser.add_argument('--save_folder', default='data/')
     arg_parser.add_argument('--save_suffix', default='') # add to save_folder name
