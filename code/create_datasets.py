@@ -116,6 +116,7 @@ class Dataset():
                 custom_label='X', # label in custom task
                 pad_to=0,
                 pad_str='P',
+                src_prefix='',
                 randomize_pad=False): 
         
         assert task in ['copy', 'different', 'reverse', 'replace', 'uppercase', 'count', 'repeat', 'same_size', 'different_size', 'custom']
@@ -184,6 +185,9 @@ class Dataset():
                 elif s_pad_add:
                     s_padded = s + ''.join([pad_str for j in range(s_pad_add)])
                     self.src[i] = s_padded
+                    
+        if src_prefix:
+            self.src = [src_prefix + s for s in self.src]
 
 # specify dataset params and labels, create dataset, save to file
 def main(args):
@@ -209,7 +213,8 @@ def main(args):
                custom_label=args.custom_label,
                pad_to=args.pad_to,
                pad_str=args.pad_str,
-               randomize_pad=args.randomize_pad)
+               randomize_pad=args.randomize_pad,
+               src_prefix=args.src_prefix)
     
     # make src-tgt pairs
     src_tgt = list(zip(ds.src, ds.tgt))
@@ -237,13 +242,14 @@ def main(args):
     # save folder name = task + vocabulary[:max_fname_len] + optional differentiating int
     save_folder = os.path.join(args.save_folder, args.task, ''.join(args.vocabulary[:args.max_fname_len]))
     cont_str = '...' if len(ds.vocabulary) > args.max_fname_len else ''
-    save_folder + cont_str
+    save_folder = save_folder + cont_str
     
     # If task is 'count', add numbers to count to save folder name
     if args.task == 'count':
         save_folder = '{0}_{1}-{2}'.format(save_folder, ds.min_len, ds.max_len)  
-    
-    save_folder += '_' + args.save_suffix
+
+    if args.save_suffix:
+        save_folder += '_' + args.save_suffix
     
     # add int to save_folder name for differentiating between variants
     if args.dont_overwrite:
@@ -294,6 +300,7 @@ if __name__ == '__main__':
     arg_parser.add_argument('--pad_to', type=int, default=0) # pad to same size
     arg_parser.add_argument('--pad_str', default='P') # char to use for padding
     arg_parser.add_argument('--randomize_pad', action='store_true') # pad in random positions instead of end
+    arg_parser.add_argument('--src_prefix', default='') # char to use as source prefix (e.g. for indicating task)
     arg_parser.add_argument('--eval_split', type=float, default=0.2) # train-eval split
     arg_parser.add_argument('--save_folder', default='data/')
     arg_parser.add_argument('--save_suffix', default='') # add to save_folder name
