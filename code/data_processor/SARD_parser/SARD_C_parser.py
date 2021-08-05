@@ -60,8 +60,8 @@ def process_file(filename, line_num):
                     return code
 
 # write function into its own file for easy use
-def write_output_to_file(filename, data, func):
-    output_path = "../../code/data_processor/C_output/"
+def write_output_to_file(filename, data, func, output_path):
+
     found = False
     filename = filename
 
@@ -81,7 +81,7 @@ def write_output_to_file(filename, data, func):
 
 def main(args):
     path = args.data_dir
-    print(path)
+    print("Get code data from: " + path)
 
     files = glob.glob(path + "*.c", recursive=True)
 
@@ -95,13 +95,14 @@ def main(args):
                     num = line_nums[i]
                     func = func_names[i]
                     output = process_file(f, num)
-                    write_output_to_file(os.path.basename(f), output, func)
+                    write_output_to_file(os.path.basename(f), output, func, args.output_dir)
 
 
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('--data-dir', default='data/',
                             help="The data directory where the CWE files are stored. Use absolute path.")
+    arg_parser.add_argument('--output_dir', default='data_processor/C_output/')
     args = arg_parser.parse_args()
     main(args)
 

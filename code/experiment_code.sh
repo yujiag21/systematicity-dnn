@@ -7,7 +7,7 @@ USE_CUDA=false # GPU/CPU
 LM_BATCH_SIZE=16
 CLF_BATCH_SIZE=16
 
-input_data_file='data_processor/processed_data.csv'
+input_data_file='data_processor/C_output/C_processed_data.csv'
 data_folder='data'
 lm_folder='lm'
 clf_folder='clf'

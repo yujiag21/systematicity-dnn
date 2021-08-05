@@ -2,6 +2,7 @@ import sctokenizer
 from sctokenizer.token import TokenType
 import argparse
 import glob
+import os
 
 C_VAR_DEC_SET = {
     'char',
@@ -97,7 +98,7 @@ def main(args):
 
         data_list.append(convert_token_to_line(tokens, label, delimiter=delimiter))
 
-    with open("processed_data.csv", "w") as f:
+    with open(os.path.join(args.output_dir, "C_processed_data.csv"), "w") as f:
         f.write("\n".join(data_list))
 
 
@@ -105,7 +106,8 @@ if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument('--data-dir', default='data/',
                             help="The data directory where the processed CWE files are stored. Use absolute path.")
-    arg_parser.add_argument('--delimiter', default='\t', help="Separator uesd to separate tokens")
+    arg_parser.add_argument("--output_dir", default="data_processor/C_output/")
+    arg_parser.add_argument('--delimiter', default='\t', help="Separator used to separate tokens")
     arg_parser.add_argument('--distinct_var', type=bool, default=True)
     args = arg_parser.parse_args()
     main(args)
