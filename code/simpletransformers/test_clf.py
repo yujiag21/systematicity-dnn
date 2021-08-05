@@ -7,58 +7,17 @@ import pandas as pd
 import argparse
 from sklearn.metrics import precision_recall_fscore_support
 from simpletransformers.classification import (ClassificationModel, ClassificationArgs)
+from clf_utils import *
 
-def calculate_metrics_from_result(result):
-    tp = result["tp"]
-    tn = result["tn"]
-    fp = result["fp"]
-    fn = result["fn"]
-
-    precision = tp/(tp+ fp)
-    recall = tp / (tp +fn)
-
-    f1 = tp / (tp + 0.5*(fp+fn))
-
-    result["precision"] = precision
-    result['recall'] = recall
-    result['f1'] = f1
-
-    return result
 
 def test_trained_clf(args):
     
     clf_folder = os.path.join(args.classifier, args.clf_best_model_folder)
-    
-    # get label names for tgt labels
-    with open(os.path.join(args.classifier, 'label_names.json'), 'r') as f:
-        label_names = json.load(f)
-    
     model = ClassificationModel(args.model, clf_folder, use_cuda=args.use_cuda)
-    
-    clf_test_data = []
-    
-    for i,fpath in enumerate(args.data):
-        data = open(fpath, 'r').readlines()
-        data = [l.strip() for l in data]
-        data = [l.split(args.delimiter) for l in data]
-        
-        # classifying pairs: format [src, tgt, label]; each file has a unique label
-        if args.pairs:
-            clf_test_data += [[s,t,i] for (s,t) in data]
-        
-        # classifying src to tgt: format [src, tgt]
-        else:
-            clf_test_data += [[s, label_names[t]] for (s,t) in data]
-    
-    test_df = pd.DataFrame(clf_test_data)
-    
-    if args.pairs:
-        test_df.columns = ["text_a", "text_b", "labels"]
-        tgt = [i for (s, t, i) in clf_test_data]
-    else:
-        test_df.columns = ["text", "labels"]
-        tgt = [t for (s,t) in clf_test_data]
-    
+
+    # prepare all test data and label
+    test_df, tgt = prepare_clf_data(args.classifier, args.data, args.pairs, args.delimiter)
+
     result, outputs, wrong_predictions = model.eval_model(test_df)
     preds = [list(l).index(max(l)) for l in outputs]
     precision, recall, f1, support = precision_recall_fscore_support(y_true=tgt, y_pred=preds, average='macro', zero_division=0)
@@ -66,9 +25,7 @@ def test_trained_clf(args):
     result['precision'] = precision
     result['recall'] = recall
     result['f1'] = f1
-    
-    # result = calculate_metrics_from_result(result)
-    
+
     print(result)
 
 
@@ -79,7 +36,10 @@ if __name__ == '__main__':
     arg_parser.add_argument('-clf', '--classifier', default='bert') # path to trained clf    
     arg_parser.add_argument('--delimiter', default='\t') # separates src from tgt in data file
     arg_parser.add_argument('--pairs', action='store_true') # classify src-tgt pairs; otherwise tgt is label
-    arg_parser.add_argument('--clf_best_model_folder', default='best_model')
+    arg_parser.add_argument('--clf_best_model_folder', default='best_model',
+                            help="Name of the directory for the version of model used. "
+                                 "You can use an older model version from earlier epoch. "
+                                 "(Default is 'best_model')")
     arg_parser.add_argument('--results_dir', default='results') # folder to save results
     arg_parser.add_argument('--use_cuda', action='store_true') # gpu/cpu
     args = arg_parser.parse_args()

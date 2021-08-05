@@ -51,13 +51,13 @@ test_task2="$data_folder/${TASKS[1]}/$V_task1/all.txt"
 # count number of training and eval samples
 
 printf "\nNumber of task1 training smaples: " >> $results
-wc -l $train_task1 >> $results
+wc -l "$train_task1" >> $results
 printf "\nNumber of task1 evaluation smaples: " >> $results
-wc -l $eval_task1 >> $results
+wc -l "$eval_task1" >> $results
 printf "\nNumber of task2 training smaples: " >> $results
-wc -l $train_task2 >> $results
+wc -l "$train_task2" >> $results
 printf "\nNumber of task2 evaluation smaples: " >> $results
-wc -l $eval_task2 >> $results
+wc -l "$eval_task2" >> $results
 printf "\n" >> $results
 
 cuda=''
@@ -81,11 +81,19 @@ clf="$clf_folder/$MODEL"
 
 
 # Test trained classifier
+eval_csv=pair_"$V_task1$V_task2$V_both"_eval_metric.csv
+test_csv=pair_"$V_task1$V_task2$V_both"_test_metric.csv
 
 printf "Evaluation results: " >> $results
 python simpletransformers/test_clf.py -d "$eval_task1" "$eval_task2" -m "$MODEL" -clf $clf --pairs $cuda >> $results # sanity check: make sure eval results are same as in saved model
 
+printf "Gather evaluation results on different epochs of the model..."
+python simpletransformers/collect_clf_result.py -d "$eval_task1" "$eval_task2" -m "$MODEL" -clf $clf --pairs $cuda -rf "$eval_csv"
+
 printf "Test results: " >> $results
 python simpletransformers/test_clf.py -d "$test_task1" "$test_task2" -m "$MODEL" -clf $clf --pairs $cuda >> $results
+
+printf "Gather test results on different epochs of the model..."
+python simpletransformers/collect_clf_result.py -d "$test_task1" "$test_task2" -m "$MODEL" -clf $clf --pairs $cuda -rf "$test_csv"
 
 printf "\n" >> $results
