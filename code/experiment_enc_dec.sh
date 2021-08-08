@@ -45,7 +45,7 @@ echo "Length: [$min_len, $max_len]" >> $results
 
 echo "Model: $MODEL" >> $results
 
-echo 'Create dataset...'
+echo 'Create train dataset...'
 python create_datasets.py -task ${task_1[0]} -voc "$V_task1$V_both" --min_len "$min_len" \
 --max_len "$max_len" --repeat "$V_task1$V_both" --save_folder "$data_folder" --save_suffix\
  ${task_1[1]}${task_1[0]} --eval_split $EVAL_SPLIT --src_prefix ${task_1[1]}
@@ -55,13 +55,23 @@ python create_datasets.py -task ${task_2[0]} -voc "$V_task2$V_both" --min_len "$
  ${task_2[1]}${task_2[0]} --eval_split $EVAL_SPLIT --src_prefix ${task_2[1]}
 
 
+echo 'Create test dataset...'
+python create_datasets.py -task ${task_1[0]} -voc "$V_task2" --min_len "$min_len" \
+--max_len "$max_len" --repeat "$V_task1$V_both" --save_folder "$data_folder" --save_suffix\
+ ${task_1[1]}${task_1[0]} --eval_split $EVAL_SPLIT --src_prefix ${task_1[1]}
+
+python create_datasets.py -task ${task_2[0]} -voc "$V_task1" --min_len "$min_len" \
+--max_len "$max_len" --repeat "$V_task1$V_both" --save_folder "$data_folder" --save_suffix\
+ ${task_2[1]}${task_2[0]} --eval_split $EVAL_SPLIT --src_prefix ${task_2[1]}
+
+
 # Train and test datasets
 train_task1="$data_folder/${task_1[0]}/${V_task1}${V_both}_${task_1[1]}${task_1[0]}/train.txt"
 eval_task1="$data_folder/${task_1[0]}/${V_task1}${V_both}_${task_1[1]}${task_1[0]}/eval.txt"
-test_task1="$data_folder/${task_1[0]}/${V_task1}_${task_1[1]}${task_1[0]}/all.txt"
+test_task1="$data_folder/${task_1[0]}/${V_task2}_${task_1[1]}${task_1[0]}/all.txt"
 train_task2="$data_folder/${task_2[0]}/${V_task2}${V_both}_${task_2[1]}${task_2[0]}/train.txt"
 eval_task2="$data_folder/${task_2[0]}/${V_task2}${V_both}_${task_2[1]}${task_2[0]}/eval.txt"
-test_task2="$data_folder/${task_2[0]}/${V_task2}_${task_2[1]}${task_2[0]}/all.txt"
+test_task2="$data_folder/${task_2[0]}/${V_task1}_${task_2[1]}${task_2[0]}/all.txt"
 
 
 printf "\nNumber of task1 training smaples: " >> $results

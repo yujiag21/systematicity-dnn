@@ -29,7 +29,7 @@ lm_folder='lm'
 enc_dec_folder='enc_dec'
 
 
-results='results/results_enc_dec.txt'
+results='results/results_enc_dec_dummy.txt'
 mkdir -p 'results'
 
 # sequence lengths
