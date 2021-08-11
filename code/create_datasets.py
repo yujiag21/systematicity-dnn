@@ -6,6 +6,11 @@ import collections
 import numpy as np
 import time
 
+
+TASK_LIST = ['copy', 'different', 'reverse', 'replace', 'uppercase',
+             'count', 'repeat', 'same_size', 'different_size',
+             'dummy', 'custom']
+
 # simple formal language dataset: (subset of) all combinations with optional restrictions on tokens for positions
 class Dataset():
     
@@ -17,7 +22,8 @@ class Dataset():
                  discard_from_position={}, # dict from positions to list of tokens in vocabulary: don't put these tokens in these positions
                  dont_repeat=[], # subset of vocabulary to not repeat in same str
                  repeat=[], # subset of vocabulary to always repeat in same str
-                 max_size=10000): # maximum number of datapoints in resulting dataset)
+                 max_size=10000, # maximum number of datapoints in resulting dataset)
+                 dummy_min_size=10): # only used for dummy task
 
         sequences = []
         max_len = len(vocabulary) if not max_len else max_len
@@ -109,6 +115,7 @@ class Dataset():
         self.voc_in_position = voc_in_position
         self.discard_from_position = discard_from_position
         self.max_size = max_size
+        self.dummy_min_size = dummy_min_size
     
     # set target values
     def set_tgt(self,
@@ -119,12 +126,19 @@ class Dataset():
                 src_prefix='',
                 randomize_pad=False): 
         
-        assert task in ['copy', 'different', 'reverse', 'replace', 'uppercase', 'count', 'repeat', 'same_size', 'different_size', 'custom']
+        assert task in TASK_LIST
         
         # sequences mapped to themselves
         if task=='copy':
             self.tgt = self.src
-        
+
+        elif task == 'dummy':
+            if len(self.src) != 1:
+                print('Only need one src tgt pair.')
+                return
+            self.tgt = np.repeat("D", self.dummy_min_size)
+            self.src = np.repeat(self.src[0], self.dummy_min_size)
+
         # sequences mapped to different sequences with edit distance between 1 and max_edit_distance
         elif task == 'different':
             if len(self.src) < 2:
@@ -206,7 +220,8 @@ def main(args):
                  repeat=args.repeat,
                  voc_in_position=args.voc_in_position,
                  discard_from_position=args.discard_from_position,
-                 max_size=args.max_size)
+                 max_size=args.max_size,
+                 dummy_min_size=args.dummy_min_size)
     
     # make targets
     ds.set_tgt(task=args.task,
@@ -293,6 +308,7 @@ if __name__ == '__main__':
     arg_parser.add_argument('--voc_in_position', type=dict, default={})
     arg_parser.add_argument('--discard_from_position', type=dict, default={})
     arg_parser.add_argument('--custom_label', default='X')
+    arg_parser.add_argument('--dummy_min_size', type=int, default=10) #used for dummy task
     arg_parser.add_argument('--max_size', type=int, default=10000)
     arg_parser.add_argument('--random_seed', type=int, default=12345) # set random seed
     arg_parser.add_argument('--separator', default=' ') # separates tokens in saved txt-file

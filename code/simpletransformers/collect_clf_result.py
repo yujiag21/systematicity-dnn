@@ -5,7 +5,7 @@ import pandas as pd
 import argparse
 from sklearn.metrics import precision_recall_fscore_support
 from simpletransformers.classification import (ClassificationModel, ClassificationArgs)
-from clf_utils import *
+from test_utils import *
 import re
 
 MODEL_DIR_TEMPLATE = 'checkpoint-[0-9]+-epoch-'
@@ -24,7 +24,9 @@ def test_trained_clf(args, output_filepath):
     }
 
     # prepare all test data and label
-    test_df, tgt = prepare_clf_data(args.classifier, args.data, args.pairs, args.delimiter)
+
+    mode = 'pairs' if args.pairs else 'label_only'
+    test_df, tgt = prepare_testing_data(args.classifier, args.data, mode, args.delimiter)
 
     # collect all the models at different epoch
     dirs = [d for d in os.listdir(args.classifier) if os.path.isdir(os.path.join(args.classifier, d))]
