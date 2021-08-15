@@ -133,11 +133,7 @@ class Dataset():
             self.tgt = self.src
 
         elif task == 'dummy':
-            if len(self.src) != 1:
-                print('Only need one src tgt pair.')
-                return
-            self.tgt = np.repeat("D", self.dummy_min_size)
-            self.src = np.repeat(self.src[0], self.dummy_min_size)
+            self.tgt = np.repeat("D", len(self.src))
 
         # sequences mapped to different sequences with edit distance between 1 and max_edit_distance
         elif task == 'different':
