@@ -108,6 +108,11 @@ if __name__ == '__main__':
     
     if args.random_seed:
         np.random.seed(args.random_seed)
+
+    # clean enc_dec folder when we allow overwrite
+    output_model_dir = os.path.join(args.output_dir, args.model)
+    if not args.dont_overwrite and os.path.exists(output_model_dir):
+        shutil.rmtree(output_model_dir)
     
     # create dataset from data files and train+save enc-dec model
     train_encoder_decoder(args)
