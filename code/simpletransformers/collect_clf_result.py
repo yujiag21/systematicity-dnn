@@ -26,7 +26,7 @@ def test_trained_clf(args, output_filepath):
     # prepare all test data and label
 
     mode = 'pairs' if args.pairs else 'label_only'
-    test_df, tgt = prepare_testing_data(args.classifier, args.data, mode, args.delimiter)
+    test_df, tgt, _ = prepare_testing_data(args.classifier, args.data, mode, args.delimiter)
 
     # collect all the models at different epoch
     dirs = [d for d in os.listdir(args.classifier) if os.path.isdir(os.path.join(args.classifier, d))]

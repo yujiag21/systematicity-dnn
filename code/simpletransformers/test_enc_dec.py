@@ -8,41 +8,8 @@ import argparse
 from sklearn.metrics import precision_recall_fscore_support
 from simpletransformers.seq2seq import (Seq2SeqModel, Seq2SeqArgs)
 from test_utils import *
-import numpy as np
 
 
-TASK_LABEL = {
-    "0": "different",
-    "1": "copy",
-    "2": "reverse",
-    "3": "dummy"
-}
-
-
-def accuracy_measure_seq(tgts, preds):
-    pairs = list(zip(tgts, preds))
-    result_arr = []
-    task_result_result = {"0":[], "1":[], "2":[], "3": []}
-
-    for tgt, pred in pairs:
-        if tgt[0] == "0":
-            res = int(tgt[1] != pred)
-            result_arr.append(res)
-        else:
-            res = int(tgt[1] == pred)
-            result_arr.append(res)
-
-        task_result_result[tgt[0]].append(res)
-
-
-    overall_acc = np.average(result_arr)
-
-    task_acc = {'overall_acc': overall_acc}
-    for key, val in task_result_result.items():
-        if val:
-            task_acc[TASK_LABEL[key]] = np.average(val)
-
-    return task_acc, result_arr, task_result_result
 
 
 
@@ -53,12 +20,12 @@ def test_trained_encoder_decoder(args):
     model = Seq2SeqModel(args.model, encoder_name=enc_folder, decoder_name=dec_folder, use_cuda=args.use_cuda)
 
     # prepare all test data and label
-    test_df, tgt = prepare_testing_data(args.encoder_decoder, args.data, "enc_dec", args.delimiter)
+    test_df, tgt, src = prepare_testing_data(args.encoder_decoder, args.data, "enc_dec", args.delimiter)
     preds = model.predict(test_df['input_text'].to_list())
 
-    task_acc, result_arr, task_result_result = accuracy_measure_seq(tgt, preds)
+    task_result, accuracy_arr, accuracy_result, edit_distance_result = calculate_metrics_enc_dec(tgt, src, preds)
 
-    print(task_acc)
+    print(task_result)
 
 
 if __name__ == '__main__':

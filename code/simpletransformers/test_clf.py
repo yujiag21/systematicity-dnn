@@ -17,7 +17,7 @@ def test_trained_clf(args):
 
     # prepare all test data and label
     mode = 'pairs' if args.pairs else 'label_only'
-    test_df, tgt = prepare_testing_data(args.classifier, args.data, mode, args.delimiter)
+    test_df, tgt, _ = prepare_testing_data(args.classifier, args.data, mode, args.delimiter)
 
     result, outputs, wrong_predictions = model.eval_model(test_df)
     preds = [list(l).index(max(l)) for l in outputs]
