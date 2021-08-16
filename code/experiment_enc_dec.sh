@@ -2,16 +2,16 @@
 
 V_task1='abc' # vocabulary used only in task1 when training
 V_task2='xyz' # vocabulary only used in task2 when training
-V_both='' # vocabulary used in both tasks when training
+V_both='defghi' # vocabulary used in both tasks when training
 
 
 DIFFERENT_TASK=('different' '0')
 COPY_TASK=('copy' '1')
 REVERSE_TASK=('reverse' '2')
-
+DUMMY_TASK=('dummy' '3')
 
 task_1=(${COPY_TASK[0]} ${COPY_TASK[1]})
-task_2=(${DIFFERENT_TASK[0]} ${DIFFERENT_TASK[1]})
+task_2=(${DUMMY_TASK[0]} ${DUMMY_TASK[1]})
 
 
 
@@ -86,19 +86,24 @@ printf "\n" >> $results
 
 
 
-# Train language model on training data
-printf "\nTraining language model\n"
-python simpletransformers/train_lm.py --data "$train_task1" "$train_task2" -m "$MODEL" --batch_size $LM_BATCH_SIZE --epochs "$EPOCHS" $cuda
-
+## Train language model on training data
+#printf "\nTraining language model\n"
+#python simpletransformers/train_lm.py --data "$train_task1" "$train_task2" -m "$MODEL" --batch_size $LM_BATCH_SIZE --epochs "$EPOCHS" $cuda
+#
 lm="$lm_folder/$MODEL"
-
-echo 'Train encoder decoder...'
-python simpletransformers/train_enc_dec.py  --train_data "$train_task1" "$train_task2" \
--m "$MODEL" --batch_size $LM_BATCH_SIZE --epochs "$EPOCHS" $cuda -lm $lm
-
+#
+#echo 'Train encoder decoder...'
+#python simpletransformers/train_enc_dec.py  --train_data "$train_task1" "$train_task2" \
+#-m "$MODEL" --batch_size $LM_BATCH_SIZE --epochs "$EPOCHS" $cuda -lm $lm
+#
 enc_dec="$enc_dec_folder/$MODEL"
+#
+#printf "Test results: " >> $results
+#python simpletransformers/test_enc_dec.py -d "$test_task1" "$test_task2" -m "$MODEL" -enc_dec $enc_dec $cuda >> $results
+#
+#printf "\n" >> $results
 
-printf "Test results: " >> $results
-python simpletransformers/test_enc_dec.py -d "$test_task1" "$test_task2" -m "$MODEL" -enc_dec $enc_dec $cuda >> $results
+test_csv=pair_"$V_task1$V_task2$V_both"_test_metric.csv
 
-printf "\n" >> $results
+printf "Gather evaluation results on different epochs of the model..."
+python simpletransformers/collect_enc_dec_result.py -d "$eval_task1" "$eval_task2" -m "$MODEL" -enc_dec $enc_dec $cuda -rf "$test_csv"
