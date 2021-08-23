@@ -4,14 +4,14 @@ import shutil
 import pandas as pd
 import argparse
 
-from simpletransformers.seq2seq import Seq2SeqModel
+from simpletransformers.seq2seq import (Seq2SeqModel, Seq2SeqArgs)
 from sklearn.metrics import precision_recall_fscore_support
-from simpletransformers.classification import (ClassificationModel, ClassificationArgs)
 from test_utils import *
 import re
 
 MODEL_DIR_TEMPLATE = 'checkpoint-[0-9]+-epoch-'
 
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 def test_trained_enc_dec(args, output_filepath):
 
@@ -39,11 +39,13 @@ def test_trained_enc_dec(args, output_filepath):
         model = Seq2SeqModel(args.model, encoder_name=enc_folder, decoder_name=dec_folder, use_cuda=args.use_cuda)
 
         preds = model.predict(test_df['input_text'].to_list())
-
+        loss_result = model.eval_model(test_df)
         task_result, accuracy_arr, accuracy_result, edit_distance_result = calculate_metrics_enc_dec(tgt, src, preds)
 
         test_result["epoch"].append(epoch)
         test_result["dir_name"].append(dir_name)
+
+        task_result['eval_loss'] = loss_result['eval_loss']
 
         for key, val in task_result.items():
             if key not in test_result:
@@ -63,7 +65,6 @@ if __name__ == '__main__':
     arg_parser.add_argument("-dl", "--data_label", default='test',
                             help='specify whether this data is from test data or evaluation data')
     arg_parser.add_argument('-m', '--model', default='bert')  # model type (must be same as trained clf)
-    # arg_parser.add_argument('-clf', '--classifier', default='bert')  # path to trained clf
     arg_parser.add_argument('-enc_dec', '--encoder_decoder', default='bert')
     arg_parser.add_argument('--delimiter', default='\t')  # separates src from tgt in data file
     arg_parser.add_argument('--enc_dec_model_folder', default='enc_dec')

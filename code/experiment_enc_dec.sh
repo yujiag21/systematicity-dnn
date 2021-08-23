@@ -2,7 +2,7 @@
 
 V_task1='abc' # vocabulary used only in task1 when training
 V_task2='xyz' # vocabulary only used in task2 when training
-V_both='defghi' # vocabulary used in both tasks when training
+V_both='' # vocabulary used in both tasks when training
 
 
 DIFFERENT_TASK=('different' '0')
@@ -27,13 +27,19 @@ data_folder='data'
 lm_folder='lm'
 enc_dec_folder='enc_dec'
 
-
-results='results/results_enc_dec.txt'
-mkdir -p 'results'
+results_dir="results"
+results="$results_dir/results_enc_dec.txt"
+mkdir -p "$results_dir"
 
 # sequence lengths
 min_len=1 # shortest sequence
 max_len=3 # longest sequences
+
+cuda=''
+if $USE_CUDA
+then
+  cuda='--use_cuda'
+fi
 
 echo "task 1: ${task_1[@]}" >> $results
 echo "task 2: ${task_2[@]}" >> $results
@@ -103,7 +109,9 @@ python simpletransformers/test_enc_dec.py -d "$test_task1" "$test_task2" -m "$MO
 
 printf "\n" >> $results
 
-test_csv=pair_"$V_task1$V_task2$V_both"_test_metric.csv
+test_csv="pair_${task_1[0]}-${task_2[0]}_$V_task1$V_task2$V_both.csv"
 
 printf "Gather evaluation results on different epochs of the model..."
 python simpletransformers/collect_enc_dec_result.py -d "$eval_task1" "$eval_task2" -m "$MODEL" -enc_dec $enc_dec $cuda -rf "$test_csv"
+
+python visualizations/plot_metric_at_epochs_enc_dec.py --results_dir "$results_dir"
