@@ -87,21 +87,21 @@ printf "\n" >> $results
 
 
 ## Train language model on training data
-#printf "\nTraining language model\n"
-#python simpletransformers/train_lm.py --data "$train_task1" "$train_task2" -m "$MODEL" --batch_size $LM_BATCH_SIZE --epochs "$EPOCHS" $cuda
-#
+printf "\nTraining language model\n"
+python simpletransformers/train_lm.py --data "$train_task1" "$train_task2" -m "$MODEL" --batch_size $LM_BATCH_SIZE --epochs "$EPOCHS" $cuda
+
 lm="$lm_folder/$MODEL"
-#
-#echo 'Train encoder decoder...'
-#python simpletransformers/train_enc_dec.py  --train_data "$train_task1" "$train_task2" \
-#-m "$MODEL" --batch_size $LM_BATCH_SIZE --epochs "$EPOCHS" $cuda -lm $lm
-#
+
+echo 'Train encoder decoder...'
+python simpletransformers/train_enc_dec.py  --train_data "$train_task1" "$train_task2" \
+-m "$MODEL" --batch_size $LM_BATCH_SIZE --epochs "$EPOCHS" $cuda -lm $lm
+
 enc_dec="$enc_dec_folder/$MODEL"
-#
-#printf "Test results: " >> $results
-#python simpletransformers/test_enc_dec.py -d "$test_task1" "$test_task2" -m "$MODEL" -enc_dec $enc_dec $cuda >> $results
-#
-#printf "\n" >> $results
+
+printf "Test results: " >> $results
+python simpletransformers/test_enc_dec.py -d "$test_task1" "$test_task2" -m "$MODEL" -enc_dec $enc_dec $cuda >> $results
+
+printf "\n" >> $results
 
 test_csv=pair_"$V_task1$V_task2$V_both"_test_metric.csv
 
