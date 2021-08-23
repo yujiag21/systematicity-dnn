@@ -9,6 +9,7 @@ import logging
 import argparse
 import numpy as np
 import pandas as pd
+import torch.multiprocessing
 from simpletransformers.seq2seq import (Seq2SeqModel, Seq2SeqArgs)
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -108,6 +109,9 @@ if __name__ == '__main__':
     
     if args.random_seed:
         np.random.seed(args.random_seed)
+    
+    # Change shared memory to file_system to solve run-time error on large datasets 
+    torch.multiprocessing.set_sharing_strategy('file_system')
 
     # clean enc_dec folder when we allow overwrite
     output_model_dir = os.path.join(args.output_dir, args.model)
