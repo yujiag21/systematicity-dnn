@@ -69,17 +69,22 @@ def calculate_metrics_enc_dec(tgts, srcs, preds):
     pairs = list(zip(tgts, srcs, preds))
     accuracy_arr = []
     accuracy_result = {}
-    edit_distance_result = {}
+    edit_distance_result_from_rev = {}
+    edit_distance_from_src = {}
 
     for tgt, src, pred in pairs:
         task = src[0]
         source_text = src[1:]
         target = tgt
+        reverse_text = source_text[::-1]
         if task not in accuracy_result:
             accuracy_result[task] = []
 
-        if task not in edit_distance_result:
-            edit_distance_result[task] = []
+        if task not in edit_distance_result_from_rev:
+            edit_distance_result_from_rev[task] = []
+
+        if task not in edit_distance_from_src:
+            edit_distance_from_src[task] = []
 
         # different task
         if task == "0":
@@ -92,8 +97,10 @@ def calculate_metrics_enc_dec(tgts, srcs, preds):
         accuracy_result[task].append(acc)
 
         # calculate normalized edit distance
-        edit_dist = edit_distance.SequenceMatcher(a=tgt, b=pred).distance() / max(len(tgt), len(pred))
-        edit_distance_result[task].append(edit_dist)
+        edit_dist_rev = edit_distance.SequenceMatcher(a=source_text, b=reverse_text).distance() / max(len(tgt), len(pred))
+        edit_dist_src = edit_distance.SequenceMatcher(a=source_text, b=pred).distance() / max(len(tgt), len(pred))
+        edit_distance_result_from_rev[task].append(edit_dist_rev)
+        edit_distance_from_src[task].append(edit_dist_src)
 
     overall_acc = np.average(accuracy_arr)
 
@@ -101,9 +108,12 @@ def calculate_metrics_enc_dec(tgts, srcs, preds):
     for key, val in accuracy_result.items():
         task_result[TASK_LABEL[key] + "-accuracy"] = np.average(val)
 
-    for key, val in edit_distance_result.items():
-        task_result[TASK_LABEL[key] + "-edit_distance"] = np.average(val)
+    for key, val in edit_distance_result_from_rev.items():
+        task_result[TASK_LABEL[key] + "-edit_distance_from_rev"] = np.average(val)
+
+    for key, val in edit_distance_from_src.items():
+        task_result[TASK_LABEL[key] + "-edit_distance_from_src"] = np.average(val)
 
     print(list(zip(srcs, preds)))
 
-    return task_result, accuracy_arr, accuracy_result, edit_distance_result
+    return task_result, accuracy_arr, accuracy_result, edit_distance_from_src

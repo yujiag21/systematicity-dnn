@@ -77,7 +77,7 @@ if __name__ == '__main__':
         os.makedirs(args.results_dir)
 
     if not args.result_filename:
-        output_filepath = os.path.join(args.results_dir, args.data_label + "_metrics.csv")
+        output_filepath = os.path.join(args.results_dir,  args.data_label + "_metrics.csv")
     else:
         output_filepath = os.path.join(args.results_dir, args.result_filename)
 
