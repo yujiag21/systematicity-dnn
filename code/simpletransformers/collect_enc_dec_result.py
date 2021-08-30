@@ -3,7 +3,7 @@ import json
 import shutil
 import pandas as pd
 import argparse
-
+import torch.multiprocessing
 from simpletransformers.seq2seq import (Seq2SeqModel, Seq2SeqArgs)
 from sklearn.metrics import precision_recall_fscore_support
 from test_utils import *
@@ -81,6 +81,7 @@ if __name__ == '__main__':
     else:
         output_filepath = os.path.join(args.results_dir, args.result_filename)
 
+    torch.multiprocessing.set_sharing_strategy('file_system')
     test_trained_enc_dec(args, output_filepath)
 
     # remove extra files

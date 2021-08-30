@@ -8,7 +8,7 @@ import argparse
 from sklearn.metrics import precision_recall_fscore_support
 from simpletransformers.seq2seq import (Seq2SeqModel, Seq2SeqArgs)
 from test_utils import *
-
+import torch.multiprocessing
 
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
@@ -45,6 +45,7 @@ if __name__ == '__main__':
     arg_parser.add_argument('--use_cuda', action='store_true')  # gpu/cpu
     args = arg_parser.parse_args()
 
+    torch.multiprocessing.set_sharing_strategy('file_system')
     test_trained_encoder_decoder(args)
 
     # remove extra files
