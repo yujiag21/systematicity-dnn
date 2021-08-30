@@ -8,10 +8,10 @@ import argparse
 from sklearn.metrics import precision_recall_fscore_support
 from simpletransformers.seq2seq import (Seq2SeqModel, Seq2SeqArgs)
 from test_utils import *
+import torch.multiprocessing
 
 
-
-
+os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
 def test_trained_encoder_decoder(args):
     enc_folder = os.path.join(args.encoder_decoder, args.enc_dec_best_model_folder, "encoder")
@@ -22,10 +22,13 @@ def test_trained_encoder_decoder(args):
     # prepare all test data and label
     test_df, tgt, src = prepare_testing_data(args.encoder_decoder, args.data, "enc_dec", args.delimiter)
     preds = model.predict(test_df['input_text'].to_list())
+    loss_result = model.eval_model(test_df)
 
     task_result, accuracy_arr, accuracy_result, edit_distance_result = calculate_metrics_enc_dec(tgt, src, preds)
 
+    print(loss_result)
     print(task_result)
+
 
 
 if __name__ == '__main__':
@@ -42,6 +45,7 @@ if __name__ == '__main__':
     arg_parser.add_argument('--use_cuda', action='store_true')  # gpu/cpu
     args = arg_parser.parse_args()
 
+    torch.multiprocessing.set_sharing_strategy('file_system')
     test_trained_encoder_decoder(args)
 
     # remove extra files
