@@ -24,42 +24,16 @@ class CopyGenerator(DataGenerator):
     def create_incomplete_patterns(self, relation):
         train = []
         eval = []
-        for i in range(datagen_config.FACTS_PER_RELATION):
-            # none copy relations
-            if i < 0.9 * datagen_config.FACTS_PER_RELATION:
-                a, b = sample(self.entities, 2)
-                train.append((a, relation, b))
-                train.append((b, relation, a))
-            else:
-                # copy relation that should be in both train and eval
-                a, b = sample(self.entities, 2)
-                if (a, relation, a) not in train:
-                    train.append((a, relation, a))
-                    eval.append((b, relation, b))
+        for _ in range(datagen_config.FACTS_PER_RELATION):
+            a = sample(self.entities, 1)[0]
+            b = sample(self.test_entities, 1)[0]
+
+            train.append((a, relation, a))
+            eval.append((b, relation, b))
 
         eval = list(filter(lambda x: self.check_train(x, train, 0), eval))
 
         return numpy.asarray(train), numpy.asarray(eval)
-
-    def create_anti_patterns(self, relation):
-        train = []
-        eval = []
-        for i in range(datagen_config.FACTS_PER_RELATION):
-            a,b = sample(self.entities, 1)
-            if (a, relation, a) not in train:
-                train.append((a, relation, b))
-            # if i < 0.9 * datagen_config.FACTS_PER_RELATION:
-            #     a, b, c = sample(self.entities, 3)
-            #     train.append((a, relation, b))
-            #     train.append((b, relation, c))
-            # else:
-            #     a, b = sample(self.entities, 2)
-            #     if (a, relation, b) not in train:
-            #         train.append((a, relation, b))
-            #         eval.append((b, relation, a))
-        eval = list(filter(lambda x: self.check_train(x, train, 0), eval))
-        return numpy.asarray(train), numpy.asarray(eval)
-
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

@@ -21,6 +21,7 @@ class DataGenerator(ABC):
         relations_split = int(self.conf.ratio_of_pattern_relations*len(self.relations))
         self.pattern_relations, self.random_relations = numpy.split(self.relations, [relations_split])
         self.entities = ['e' + str(i) for i in range(self.conf.ENTITYTYPE_AMOUNT)] if entity_list else set()
+        self.test_entities = ['te' + str(i) for i in range(self.conf.ENTITYTYPE_AMOUNT)] if entity_list else set()
         self.subj_rel2obj_train, self.subj_rel2obj_eval = defaultdict(list), defaultdict(list)
         self.rand_subj_rel2obj_train, self.rand_subj_rel2obj_eval = defaultdict(list), defaultdict(list)
 
