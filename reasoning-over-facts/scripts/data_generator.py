@@ -25,9 +25,12 @@ class DataGenerator(ABC):
         self.subj_rel2obj_train, self.subj_rel2obj_eval = defaultdict(list), defaultdict(list)
         self.rand_subj_rel2obj_train, self.rand_subj_rel2obj_eval = defaultdict(list), defaultdict(list)
 
+        self.bool_det = {"true": "T", "false": "F"}
+
         self.clear_files()
 
     def create_dataset(self):
+
         for _ in range(self.conf.NUMBER_RULES):
             relation = sample(list(self.pattern_relations), 1)[0]
             complete_facts = self.create_complete_facts(relation)
@@ -40,6 +43,7 @@ class DataGenerator(ABC):
             rand_train, rand_eval = self.create_incomplete_patterns(relation)
             self.write(rand_train, 'rand_train', self.rand_subj_rel2obj_train)
             self.write(rand_eval, 'rand_eval', self.rand_subj_rel2obj_eval)
+
 
         json.dump(self.rand_subj_rel2obj_train, open(os.path.join(self.dir, 'rand_subject_relation2object_train.json'), 'w'))
         json.dump(self.rand_subj_rel2obj_eval, open(os.path.join(self.dir, 'rand_subject_relation2object_eval.json'), 'w'))
@@ -54,6 +58,10 @@ class DataGenerator(ABC):
 
     def create_vocab(self):
         vocab = ["[SEP]", "[CLS]", "[PAD]", "[MASK]", "[UNK]"] + self.relations + list(self.entities)
+
+        if "copy" in self.dir:
+            vocab += list(self.test_entities)
+
         path_to_vocab = self.dir.replace('datasets', 'vocab')
         os.makedirs(path_to_vocab, exist_ok=True)
         with open(os.path.join(path_to_vocab, 'vocab.txt'), 'w') as txt_file:

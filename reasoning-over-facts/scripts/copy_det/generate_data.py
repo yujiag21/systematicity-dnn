@@ -2,11 +2,12 @@ import argparse
 import os
 import shutil
 from random import sample
+from random import getrandbits
 
 import numpy
 import config
 from scripts.data_generator import DataGenerator
-from scripts.copy import datagen_config
+from scripts.symmetry import datagen_config
 
 
 class CopyGenerator(DataGenerator):
@@ -18,7 +19,11 @@ class CopyGenerator(DataGenerator):
         complete_facts = []
         for _ in range(datagen_config.FACTS_PER_RELATION):
             a, b = sample(self.entities, 2)
-            complete_facts.append(((a, relation, a), (b, relation, b)))
+            complete_facts.append(((a, a, self.bool_det['true']),
+                                   (a, b, self.bool_det['false']),
+                                   (b, a, self.bool_det['false']),
+                                   (b, b, self.bool_det['true'])
+                                   ))
         return numpy.asarray(complete_facts)
 
     def create_incomplete_patterns(self, relation):
@@ -28,8 +33,15 @@ class CopyGenerator(DataGenerator):
             a = sample(self.entities, 1)[0]
             b = sample(self.test_entities, 1)[0]
 
-            train.append((a, relation, a))
-            eval.append((b, relation, b))
+            train.append((a, a, self.bool_det['true']))
+            eval.append((b, b, self.bool_det['true']))
+
+            if getrandbits(1):
+                train.append((a, b, self.bool_det['false']))
+                eval.append((b, a, self.bool_det['false']))
+            else:
+                eval.append((a, b, self.bool_det['false']))
+                train.append((b, a, self.bool_det['false']))
 
         eval = list(filter(lambda x: self.check_train(x, train, 0), eval))
 
@@ -40,7 +52,7 @@ if __name__ == '__main__':
     parser.add_argument(
         "--dataset_name", default=None, type=str, required=True, help="The name of the dataset you want to create.")
     args = parser.parse_args()
-    DATA_DIR = os.path.join(config.datasets_dirs['copy'], args.dataset_name)
+    DATA_DIR = os.path.join(config.datasets_dirs['copy-det'], args.dataset_name)
     try:
         os.makedirs(DATA_DIR, exist_ok=False)
     except OSError:
