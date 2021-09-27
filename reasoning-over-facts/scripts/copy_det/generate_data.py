@@ -7,7 +7,7 @@ from random import getrandbits
 import numpy
 import config
 from scripts.data_generator import DataGenerator
-from scripts.symmetry import datagen_config
+from scripts.copy_det import datagen_config
 
 
 class CopyGenerator(DataGenerator):
@@ -52,7 +52,7 @@ if __name__ == '__main__':
     parser.add_argument(
         "--dataset_name", default=None, type=str, required=True, help="The name of the dataset you want to create.")
     args = parser.parse_args()
-    DATA_DIR = os.path.join(config.datasets_dirs['copy-det'], args.dataset_name)
+    DATA_DIR = os.path.join(config.datasets_dirs['copy_det'], args.dataset_name)
     try:
         os.makedirs(DATA_DIR, exist_ok=False)
     except OSError:
