@@ -21,17 +21,23 @@ class DataGenerator(ABC):
         relations_split = int(self.conf.ratio_of_pattern_relations*len(self.relations))
         self.pattern_relations, self.random_relations = numpy.split(self.relations, [relations_split])
         self.entities = ['e' + str(i) for i in range(self.conf.ENTITYTYPE_AMOUNT)] if entity_list else set()
+        self.test_entities = ['te' + str(i) for i in range(self.conf.ENTITYTYPE_AMOUNT)] if entity_list else set()
         self.subj_rel2obj_train, self.subj_rel2obj_eval = defaultdict(list), defaultdict(list)
         self.rand_subj_rel2obj_train, self.rand_subj_rel2obj_eval = defaultdict(list), defaultdict(list)
 
+        self.bool_det = {"true": "T", "false": "F"}
+
         self.clear_files()
 
+
     def create_dataset(self):
+
         for _ in range(self.conf.NUMBER_RULES):
             relation = sample(list(self.pattern_relations), 1)[0]
             complete_facts = self.create_complete_facts(relation)
             split_pos = int(self.conf.ratio_of_complete_patterns * len(complete_facts))
             train, eval = self.split(complete_facts, split_pos)
+
             self.write(train, 'train', self.subj_rel2obj_train)
             self.write(eval, 'eval', self.subj_rel2obj_eval)
         for _ in range(self.conf.NUMBER_RULES):
@@ -40,8 +46,10 @@ class DataGenerator(ABC):
             self.write(rand_train, 'rand_train', self.rand_subj_rel2obj_train)
             self.write(rand_eval, 'rand_eval', self.rand_subj_rel2obj_eval)
 
-        json.dump(self.rand_subj_rel2obj_train, open(os.path.join(self.dir, 'rand_subject_relation2object_train.json'), 'w'))
-        json.dump(self.rand_subj_rel2obj_eval, open(os.path.join(self.dir, 'rand_subject_relation2object_eval.json'), 'w'))
+        json.dump(self.rand_subj_rel2obj_train,
+                  open(os.path.join(self.dir, 'rand_subject_relation2object_train.json'), 'w'))
+        json.dump(self.rand_subj_rel2obj_eval,
+                  open(os.path.join(self.dir, 'rand_subject_relation2object_eval.json'), 'w'))
         json.dump(self.subj_rel2obj_train, open(os.path.join(self.dir, 'subject_relation2object_train.json'), 'w'))
         json.dump(self.subj_rel2obj_eval, open(os.path.join(self.dir, 'subject_relation2object_eval.json'), 'w'))
         self.create_vocab()
@@ -53,6 +61,13 @@ class DataGenerator(ABC):
 
     def create_vocab(self):
         vocab = ["[SEP]", "[CLS]", "[PAD]", "[MASK]", "[UNK]"] + self.relations + list(self.entities)
+
+        if "copy" in self.dir:
+            vocab += list(self.test_entities)
+
+        if "copy_det" in self.dir:
+            vocab += list(self.bool_det.values())
+
         path_to_vocab = self.dir.replace('datasets', 'vocab')
         os.makedirs(path_to_vocab, exist_ok=True)
         with open(os.path.join(path_to_vocab, 'vocab.txt'), 'w') as txt_file:
@@ -65,8 +80,10 @@ class DataGenerator(ABC):
 
     def split(self, facts, split_pos):
         train, eval = numpy.split(facts, [split_pos])
+
         flatten_train = train.reshape(train.shape[0]*train.shape[1], train.shape[2])
         train = flatten_train
+
         train, eval = train.tolist(), eval.tolist()
         to_be_masked = []
         for chain in eval:

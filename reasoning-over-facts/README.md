@@ -51,6 +51,21 @@ Here is an exmaple command for symmetry:
     --relation symmetry
     --dataset_name default_setup
 
+### New Code Addition for System-DNN Project
+
+Added two new datasets: `copy` and `copy_det`. To train model, use similar commands as before:
+
+    python3 run_language_modeling.py \
+    --relation copy
+    --dataset_name default_setup
+
+To evaluate with already trained language models:
+
+    python3 evaluate_language_model.py \
+    --relation copy
+    --dataset_name default_setup
+
+
 ### Probing BERT
 
 We also provide our Notebooks and data for probing BERT for consistent predictions regarding symmetry & inversion.

@@ -1,7 +1,7 @@
 import os
 
 supported_relations = ['symmetry', 'negation', 'inverse', 'composition',
-                       'implication', 'equivalence', 'composition_enhanced']
+                       'implication', 'equivalence', 'composition_enhanced', 'copy']
 
 project_base_dir = os.path.dirname(os.path.realpath(__file__))
 scripts_dir = os.path.join(project_base_dir, 'scripts')

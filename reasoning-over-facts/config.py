@@ -1,7 +1,8 @@
 import os
 
 supported_relations = ['symmetry', 'negation', 'inverse', 'composition',
-                       'implication', 'equivalence', 'composition_enhanced']
+                       'implication', 'equivalence', 'composition_enhanced',
+                       'copy', 'copy_det']
 
 project_base_dir = os.path.dirname(os.path.realpath(__file__))
 scripts_dir = os.path.join(project_base_dir, 'scripts')
@@ -26,3 +27,5 @@ inverse_config = os.path.join(scripts_dirs['inverse'], 'datagen_config.py')
 negation_config = os.path.join(scripts_dirs['negation'], 'datagen_config.py')
 composition_config = os.path.join(scripts_dirs['composition'], 'datagen_config.py')
 enhanced_config = os.path.join(scripts_dirs['composition_enhanced'], 'datagen_config.py')
+copy_config = os.path.join(scripts_dirs['copy'], 'datagen_config.py')
+copy_det_config = os.path.join(scripts_dirs['copy_det'], 'datagen_config.py')
