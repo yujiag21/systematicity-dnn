@@ -13,17 +13,21 @@ from scripts.copy_det import datagen_config
 class CopyGenerator(DataGenerator):
 
     def __init__(self, dataset_dir, config):
-        super().__init__(dataset_dir, config, evals_allowed_in_train=0)
+        super().__init__(dataset_dir, config, evals_allowed_in_train=0, numb_left_out_for_eval=2)
 
     def create_complete_facts(self, relation):
         complete_facts = []
         for _ in range(datagen_config.FACTS_PER_RELATION):
             a, b = sample(self.entities, 2)
-            complete_facts.append(((a, a, self.bool_det['true']),
-                                   (a, b, self.bool_det['false']),
+
+            fact_arr = numpy.asarray(((a, a, self.bool_det['true']),
                                    (b, a, self.bool_det['false']),
-                                   (b, b, self.bool_det['true'])
-                                   ))
+                                   (b, b, self.bool_det['true']),
+                                   (a, b, self.bool_det['false'])))
+
+
+            complete_facts.append(fact_arr)
+
         return numpy.asarray(complete_facts)
 
     def create_incomplete_patterns(self, relation):
@@ -46,6 +50,7 @@ class CopyGenerator(DataGenerator):
         eval = list(filter(lambda x: self.check_train(x, train, 0), eval))
 
         return numpy.asarray(train), numpy.asarray(eval)
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()

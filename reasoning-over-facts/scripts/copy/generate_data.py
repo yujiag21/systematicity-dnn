@@ -35,6 +35,7 @@ class CopyGenerator(DataGenerator):
 
         return numpy.asarray(train), numpy.asarray(eval)
 
+
 if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument(
