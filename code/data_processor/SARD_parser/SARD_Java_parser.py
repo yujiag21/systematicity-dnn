@@ -26,7 +26,8 @@ GOOD_FUNC_NAMES = {
 }
 FUNC_NAMES = { ** BAD_FUNC_NAMES, ** GOOD_FUNC_NAMES}
 
-def write_output_to_file(filename, data, func):
+
+def write_output_to_file(filename, data, func, output_path):
     """Writes given function to file 
 
     Args:
@@ -38,7 +39,6 @@ def write_output_to_file(filename, data, func):
         [None]
     """
 
-    output_path = "../../code/data_processor/Java_Output/"
     output_path += "BAD/" if func in BAD_FUNC_NAMES else "GOOD/"
     output_path += BAD_FUNC_NAMES[func] if func in BAD_FUNC_NAMES else GOOD_FUNC_NAMES[func]
     output_path += "_"
@@ -46,6 +46,7 @@ def write_output_to_file(filename, data, func):
     
     with open(output_path, "w") as f:
         f.write(data)
+
 
 def process_file(filename, line_num):
     """Processes source code starting from line_num (start of a function) to the end of the function
@@ -77,6 +78,7 @@ def process_file(filename, line_num):
                 if cnt_braket == 0 and found_start == True:
                     return code
 
+
 def get_line_numbers(f):
     """Parses source code to find functions that has function signature specified in FUNC_NAMES and the starting line number
 
@@ -96,6 +98,7 @@ def get_line_numbers(f):
                 line_nums_dict[func_sig] = line_num+1
     return line_nums_dict
 
+
 def main(args):
     path = args.data_dir
     print(f"Parsing code in {path}")
@@ -105,15 +108,19 @@ def main(args):
     for f in files:
         line_nums_dict = get_line_numbers(f)
         if len(line_nums_dict) < 3:
-            print(f"Less than 3 functions in file {f}. Please inspect manually to check if any functions are not parsed.")
+            print(f"Less than 3 functions in file {f}. "
+                  f"Please inspect manually to check if any functions are not parsed.")
 
         for func_name, line_num in line_nums_dict.items():
                 output = process_file(f, line_num)
-                write_output_to_file(os.path.basename(f), output, func_name)
+                write_output_to_file(os.path.basename(f), output, func_name, args.output_dir)
+
 
 if __name__ == '__main__':
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument('--data-dir', default='../../code/data_processor/sample_data/Java/CWE476_NULL_Pointer_Dereference/',
+    arg_parser.add_argument('--data_dir',
+                            default='../../code/data_processor/sample_data/Java/CWE476_NULL_Pointer_Dereference/',
                             help="The data directory where the CWE files are stored")
+    arg_parser.add_argument('--output_dir', default='../../code/data_processor/Java_Output/')
     args = arg_parser.parse_args()
     main(args)

@@ -38,6 +38,10 @@ def train_lm(args):
     # filepath to save training data: named by vocabulary[:max_fname_len] + added int for differentiating between variants
     cont_str = '...' if len(lm_train_voc) > args.max_fname_len else ''
     train_fname = ''.join(lm_train_voc[:args.max_fname_len]) + cont_str
+
+    # Use another default file name if special characters are in train_fname
+    if '/' in train_fname or "." in train_fname:
+        train_fname = args.task
     
     if args.dont_overwrite:
         data_int = 1
@@ -46,7 +50,7 @@ def train_lm(args):
         train_fname = '{0}_{1}.txt'.format(train_fname, data_int)
     
     train_file = os.path.join(args.save_data_dir, train_fname)
-    
+
     # add int to save_folder name for differentiating between variants
     if args.dont_overwrite:
         folder_int = 1
@@ -119,6 +123,7 @@ if __name__ == '__main__':
     arg_parser.add_argument('--dont_overwrite', action='store_true') # add differentiating int to folder
     arg_parser.add_argument('--use_cuda', action='store_true') # gpu/cpu
     arg_parser.add_argument('--max_fname_len', type=int, default=100)
+    arg_parser.add_argument('--task', type=str, default="") # ues a default task name when folder name is bad
     args = arg_parser.parse_args()
     
     if args.random_seed:
