@@ -3,6 +3,7 @@ MODEL='bert'
 EPOCHS=5
 EVAL_SPLIT=0.2
 USE_CUDA=false # GPU/CPU
+SAME_VAR=false
 
 LM_BATCH_SIZE=16
 CLF_BATCH_SIZE=16
@@ -17,6 +18,14 @@ results='results/results_C.txt'
 mkdir -p 'results'
 
 task='CCode'
+
+
+input_data_file='data_processor/C_output/C_processed_data_var.csv'
+if $SAME_VAR
+then
+  input_data_file='data_processor/C_output/C_processed_data_same_var.csv'
+fi
+
 
 echo "Model: $MODEL" >> $results
 
@@ -46,6 +55,6 @@ clf="$clf_folder/$MODEL"
 
 
 printf "Test results: " >> $results
-python simpletransformers/test_clf.py -d "$test_task1" -m "$MODEL" -clf $clf $cuda >> $results
+python simpletransformers/test_clf.py -d "$eval_task1" -m "$MODEL" -clf $clf $cuda >> $results
 
 printf "\n" >> $results
