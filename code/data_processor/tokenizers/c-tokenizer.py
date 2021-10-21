@@ -23,7 +23,7 @@ GENERIC_VAR_TEMPLATE = "VAR_{}"
 GENERIC_STRING_VALUE = "STRING"
 
 
-def process_tokens(tokens, distinct_var=True):
+def process_tokens(tokens, same_var_name=False):
     variable_lines = set()
     generic_var_value = 0
 
@@ -56,7 +56,7 @@ def process_tokens(tokens, distinct_var=True):
                 token.token_value = new_name
                 variable_map[old_name] = new_name
 
-                if distinct_var:
+                if not same_var_name:
                     generic_var_value += 1
 
     # replace variable names with generic names
@@ -81,7 +81,7 @@ def convert_token_to_line(tokens, label, delimiter):
 def main(args):
     path = args.data_dir
     delimiter = args.delimiter
-    distinct_var = args.distinct_var
+    same_var_name = args.same_var_name
     print("Search for files in " + path)
     files = glob.glob(path + "**/*.c", recursive=True)
 
@@ -94,11 +94,11 @@ def main(args):
             label = "1"
 
         tokens = sctokenizer.tokenize_file(filepath=file, lang='c')
-        tokens = process_tokens(tokens, distinct_var)
+        tokens = process_tokens(tokens, same_var_name)
 
         data_list.append(convert_token_to_line(tokens, label, delimiter=delimiter))
 
-    with open(os.path.join(args.output_dir, "C_processed_data.csv"), "w") as f:
+    with open(os.path.join(args.output_dir, args.output_filename), "w") as f:
         f.write("\n".join(data_list))
 
 
@@ -108,6 +108,7 @@ if __name__ == '__main__':
                             help="The data directory where the processed CWE files are stored. Use absolute path.")
     arg_parser.add_argument("--output_dir", default="data_processor/C_output/")
     arg_parser.add_argument('--delimiter', default='\t', help="Separator used to separate tokens")
-    arg_parser.add_argument('--distinct_var', type=bool, default=True)
+    arg_parser.add_argument("--output_filename", default="C_processed_data.csv")
+    arg_parser.add_argument('--same_var_name',  action='store_false')
     args = arg_parser.parse_args()
     main(args)
