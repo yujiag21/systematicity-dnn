@@ -37,7 +37,7 @@ def process_tokens(tokens, same_var_name=False):
             variable_lines.add(token.line)
 
     # filter out comments
-    tokens = list(filter(lambda x: x.token_type != TokenType.COMMENT_SYMBOL ,tokens))
+    tokens = list(filter(lambda x: x.token_type != TokenType.COMMENT_SYMBOL,tokens))
 
     # map all declared variables and strings to a generic name
     for token in tokens:
@@ -67,20 +67,21 @@ def process_tokens(tokens, same_var_name=False):
     return tokens
 
 
-def convert_token_to_line(tokens, label, delimiter):
+def convert_token_to_line(tokens, label, separator, delimeter):
     tok_list = list()
     for token in tokens:
         tok_list.append(token.token_value)
 
-    data = delimiter.join(tok_list)
-    data += "," + str(label)
+    data = separator.join(tok_list)
+    data += delimeter + str(label)
 
     return data
 
 
 def main(args):
     path = args.data_dir
-    delimiter = args.delimiter
+    separator = args.separator
+    delimeter = args.delimeter
     same_var_name = args.same_var_name
     print("Search for files in " + path)
     files = glob.glob(path + "**/*.c", recursive=True)
@@ -96,7 +97,7 @@ def main(args):
         tokens = sctokenizer.tokenize_file(filepath=file, lang='c')
         tokens = process_tokens(tokens, same_var_name)
 
-        data_list.append(convert_token_to_line(tokens, label, delimiter=delimiter))
+        data_list.append(convert_token_to_line(tokens, label, separator, delimeter))
 
     with open(os.path.join(args.output_dir, args.output_filename), "w") as f:
         f.write("\n".join(data_list))
@@ -107,7 +108,8 @@ if __name__ == '__main__':
     arg_parser.add_argument('--data-dir', default='data/',
                             help="The data directory where the processed CWE files are stored. Use absolute path.")
     arg_parser.add_argument("--output_dir", default="data_processor/C_output/")
-    arg_parser.add_argument('--delimiter', default='\t', help="Separator used to separate tokens")
+    arg_parser.add_argument('--delimeter', default='\t', help="Separator used to separate tokens")
+    arg_parser.add_argument('--separator', default=" ")
     arg_parser.add_argument("--output_filename", default="C_processed_data.csv")
     arg_parser.add_argument('--same_var_name',  action='store_false')
     args = arg_parser.parse_args()
