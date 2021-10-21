@@ -45,6 +45,9 @@ then
   cuda='--use_cuda'
 fi
 
+# Train language model on training data
+printf "\nTraining language model\n"
+python simpletransformers/train_lm.py --data "$train_task1" -m "$MODEL" --batch_size $LM_BATCH_SIZE --epochs "$EPOCHS" $cuda
 
 lm="$lm_folder/$MODEL"
 
