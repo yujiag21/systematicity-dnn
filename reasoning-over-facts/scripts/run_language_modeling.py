@@ -212,7 +212,7 @@ def train(args, train_dataset, corrects, model: PreTrainedModel, tokenizer: PreT
                 steps_trained_in_current_epoch -= 1
                 continue
 
-
+            print(batch[:100])
             inputs, labels = mask_tokens(batch, tokenizer, args)
             print('inputs ', inputs[:100])
             print('labels ', labels[:100])
