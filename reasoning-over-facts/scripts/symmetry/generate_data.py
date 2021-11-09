@@ -27,9 +27,11 @@ class SymmetryGenerator(DataGenerator):
         for _ in range(datagen_config.FACTS_PER_RELATION):
             a, b = sample(self.entities, 2)
             train.append((a, relation, b))
-            train.append((relation, 'SYM', 'False'))
             eval.append((b, relation, a))
+            ###############################################
+            train.append((relation, 'SYM', 'False'))
             eval.append((relation, 'SYM', 'False'))
+            ##############################################
 
         eval = list(filter(lambda x: self.check_train(x, train, 0), eval))
         return numpy.asarray(train), numpy.asarray(eval)

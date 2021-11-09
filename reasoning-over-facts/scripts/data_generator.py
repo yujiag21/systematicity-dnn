@@ -61,7 +61,10 @@ class DataGenerator(ABC):
 
     def create_vocab(self):
         vocab = ["[SEP]", "[CLS]", "[PAD]", "[MASK]", "[UNK]"] + self.relations + list(self.entities)
-        vocab += ['symmetry', 'True', 'False']
+
+        ##############################################################
+        vocab += ['SYM', 'True', 'False']
+        ##############################################################
 
         if "copy" in self.dir:
             vocab += list(self.test_entities)
