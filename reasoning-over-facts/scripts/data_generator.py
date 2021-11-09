@@ -61,12 +61,16 @@ class DataGenerator(ABC):
 
     def create_vocab(self):
         vocab = ["[SEP]", "[CLS]", "[PAD]", "[MASK]", "[UNK]"] + self.relations + list(self.entities)
+        vocab += ['symmetry', 'True']
 
         if "copy" in self.dir:
             vocab += list(self.test_entities)
 
         if "copy_det" in self.dir:
             vocab += list(self.bool_det.values())
+
+        # if "property" in self.dir:
+
 
         path_to_vocab = self.dir.replace('datasets', 'vocab')
         os.makedirs(path_to_vocab, exist_ok=True)
