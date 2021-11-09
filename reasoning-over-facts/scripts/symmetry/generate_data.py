@@ -18,7 +18,7 @@ class SymmetryGenerator(DataGenerator):
         complete_facts = []
         for _ in range(datagen_config.FACTS_PER_RELATION):
             a, b = sample(self.entities, 2)
-            complete_facts.append(((a, relation, b), (b, relation, a),(relation, 'SYM', 'True')))
+            complete_facts.append(((a, relation, b), (b, relation, a), (relation, 'SYM', 'True')))
         return numpy.asarray(complete_facts)
 
     def create_incomplete_patterns(self, relation):
@@ -26,8 +26,8 @@ class SymmetryGenerator(DataGenerator):
         eval = []
         for _ in range(datagen_config.FACTS_PER_RELATION):
             a, b = sample(self.entities, 2)
-            train.append((a, relation, b))
-            eval.append((b, relation, a))
+            train.append(((a, relation, b), (relation, 'SYM', 'False')))
+            eval.append(((b, relation, a), (relation, 'SYM', 'False')))
         eval = list(filter(lambda x: self.check_train(x, train, 0), eval))
         return numpy.asarray(train), numpy.asarray(eval)
 
