@@ -108,7 +108,7 @@ class DataGenerator(ABC):
     def write(self, triples, type, obj_dict):
         if 'train' in type and self.conf.shuffle_train:
             shuffle(triples)
-        with open(os.path.join(self.dir, f'{type if type != "rand_train" else type.replace("rand_", "")}.txt'), 'a') as file, \
+        with open(os.path.join(self.dir, f'{type if type != "rand_train" and type != "rand_eval"  else type.replace("rand_", "")}.txt'), 'a') as file, \
                 open(os.path.join(self.dir, f'masked_{type}.txt'), 'a') as masked_file:
             for triple in triples:
                 if 'train' in type:
