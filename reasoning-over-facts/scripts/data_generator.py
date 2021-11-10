@@ -37,7 +37,7 @@ class DataGenerator(ABC):
             complete_facts = self.create_complete_facts(relation)
             split_pos = int(self.conf.ratio_of_complete_patterns * len(complete_facts))
             train, eval = self.split(complete_facts, split_pos)
-            if numpy.random.rand() < 0.9:
+            if numpy.random.rand() < 0.5:
                 train.append((relation, "PATTERN", "True"))
             else:
                 eval.append((relation, "PATTERN", "True"))
@@ -47,7 +47,7 @@ class DataGenerator(ABC):
         for _ in range(self.conf.NUMBER_RULES):
             relation = sample(list(self.random_relations), 1)[0]
             rand_train, rand_eval = self.create_incomplete_patterns(relation)
-            if numpy.random.rand() < 0.9:
+            if numpy.random.rand() < 0.5:
                 rand_train=numpy.append(rand_train, [[relation, "PATTERN", "False"]], axis=0)
             else:
                 rand_eval=numpy.append(rand_eval, [[relation, "PATTERN", "False"]], axis=0)
