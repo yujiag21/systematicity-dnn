@@ -37,12 +37,21 @@ class DataGenerator(ABC):
             complete_facts = self.create_complete_facts(relation)
             split_pos = int(self.conf.ratio_of_complete_patterns * len(complete_facts))
             train, eval = self.split(complete_facts, split_pos)
+            if numpy.random.rand() < 0.9:
+                train.append((relation, "PATTERN", "True"))
+            else:
+                eval.append((relation, "PATTERN", "True"))
 
             self.write(train, 'train', self.subj_rel2obj_train)
             self.write(eval, 'eval', self.subj_rel2obj_eval)
         for _ in range(self.conf.NUMBER_RULES):
             relation = sample(list(self.random_relations), 1)[0]
             rand_train, rand_eval = self.create_incomplete_patterns(relation)
+            if numpy.random.rand() < 0.9:
+                rand_train=numpy.append(rand_train, [[relation, "PATTERN", "False"]], axis=0)
+            else:
+                rand_eval=numpy.append(rand_eval, [[relation, "PATTERN", "False"]], axis=0)
+
             self.write(rand_train, 'rand_train', self.rand_subj_rel2obj_train)
             self.write(rand_eval, 'rand_eval', self.rand_subj_rel2obj_eval)
 
@@ -63,7 +72,7 @@ class DataGenerator(ABC):
         vocab = ["[SEP]", "[CLS]", "[PAD]", "[MASK]", "[UNK]"] + self.relations + list(self.entities)
 
         ##############################################################
-        vocab += ['SYM', 'True', 'False']
+        vocab += ['PATTERN', 'True', 'False']
         ##############################################################
 
         if "copy" in self.dir:
