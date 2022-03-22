@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="WebServers">
+    <option name="servers">
+      <webServer id="6af1d085-1381-4be4-8c08-8f6bff748614" name="triton">
+        <fileTransfer rootFolder="/scratch/work/guoy8/symbolic_inference" accessType="SFTP" host="triton.aalto.fi" port="22" sshConfigId="844a904c-1399-4a04-9f4d-bdbcd228b9be" sshConfig="guoy8@triton.aalto.fi:22 password">
+          <advancedOptions>
+            <advancedOptions dataProtectionLevel="Private" keepAliveTimeout="0" passiveMode="true" shareSSLContext="true" />
+          </advancedOptions>
+        </fileTransfer>
+      </webServer>
+    </option>
+  </component>
+</project>
